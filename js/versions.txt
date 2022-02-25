@@ -1,0 +1,120 @@
+:fft01
+straight-forward implementation, mostly unoptimized
+=====
+:fft02:fft01
+precomputing the unit roots
+=====
+:fft03:fft02
+Instead of extracting parts of f into smaller arrays we only pass down
+a description which elements of f to use.
+(Unfortunately we now have to create new arrays of size 1 whenever the recursion
+terminates. This will be eliminated in another optimization step.)
+=====
+:fft04:fft03
+Instead of creating new output arrays in each call we accept a single
+output array and pass down a description to which elements to write the results.
+=====
+:fft05:fft04
+Avoid some index calculations during the recursion by precomputing a permutation
+used upon recursion termination.
+=====
+:fft06:fft05
+Apply the permutation already outside the recursion.
+=====
+:fft07:fft06
+Extract the non-recursive functionality of the recursive function to an
+auxiliary function.  This is not an optimization.  It just helps to make the
+following refactoring easier to understand.
+=====
+:fft08:fft07
+Replace the recursion by iteration.
+=====
+:fft09:fft08
+Inline the auxiliary function again.
+=====
+:fft10:fft09
+Compute the permutations iteratively as well.  This is just to
+simplify the code.  It has no significant performance impact since this
+code runs in the "preparation phase", not during the actual computation.
+Notice:
+- Instead of accumulating fStride values in offset during the recursive
+  descent we accumulate fStrides directly in the elements of permute.
+- The variables out_offset and out_offset_odd here fit only roughly
+  with the corresponding variables in the recursive implementation.
+=====:fft11:fft10
+Use "<< 1" instead of "* 2" for doubling and (more importantly) ">>> 1" instead
+of "/ 2" for halving powers of 2.  This way the compiler can detect more easily
+that the results are always (unsigned 32-bit) integers.
+=====
+:fft12:fft11
+=====
+:fft13:fft12
+=====
+:fft14:fft12
+=====
+:fft14a:fft14
+### positive stride
+=====
+:fft14b:fft14a
+=====
+:fft15:fft14
+Handle the case k = 0 outside the loop and optimize it making use of the fact
+that cos(0) = 1 and sin(0) = 0.
+=====
+:fft15a:fft15
+Unfolded intermediate constants.
+- The intermediate constants made sense for comparability of 2-way and 4-way
+  butterflies, but especially in the optimized k = 0 case they are overkill.
+- This should not have an effect with an optimizing compiler.  It might have a
+  little effect with non-optimizing evaluation.
+=====
+:fft15b:fft15a
+Base the primary loop on halfLen rather than len, which we do not really need.
+(A minor simplification that should have been done earlier.)
+=====
+:fft15c:fft15b
+Use a TypedArray with a smaller Uint type for permute if possible.
+=====
+:fft15d:fft15c
+Copy variables from the outer to the inner fft function.
+(This might persuade an optimizer to use registers for these variables.)
+=====
+:fft16:fft15d
+=====
+:fft40:fft11
+Use 4-way merging
+=====
+:fft44:fft40
+Simplify 4-way merging, particularly making use of these facts:
+- Multiplying rotations can be replaced by adding the angles or, equivalently,
+  the indices.
+- Two of the rotations are 90° apart.
+  Rotating by 90° is cheaper than a general multiplication.
+- Swapping the loops for k and out_offset also allows to pull out some code from
+  the innermost loop.
++ misc low-level tuning, which should go to separate versions
+=====
+:fft47:fft44
+This implementation applies to 4-way merging some of the refactorings that have
+been applied to 2-way merging elsewhere.
+
+Currently there is only a C++ implementation and no corresponding JS code.
+TODO: Implement this also in JS?  It might not be worthwhile since the
+refactorings increase the code size and already the code size of the 4-way
+merging in fft44 seems to be problematic for the v8 optimizer.  But this might
+be not be the case with other JS engines.
+
+On top of this, the C++ implementation "fft47pointers" replaces array accesses
+with pointer arithmetics, which improves efficiency a bit more.
+=====
+:fft98
+=====
+:fft98a:fft98
+=====
+:fft99:fft98
+=====
+:fft99a:fft99
+=====
+tb:fft99b:fft99
+=====
+tb:fft99c:fft99b
