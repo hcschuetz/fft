@@ -129,7 +129,8 @@ For comparison I have ported some of the implementations to C++.
 (See folder `../c++`.)
 
 It turns out that the fastest JS implementations are still slower than the
-fastest C++ implementations, but not that much.
+corresponding C++ implementations, but not that much.  The fastest C++
+implementations are even a bit faster.
 
 On the other hand the speed of the C++ code is much more reliable.
 In particular the switch from radix-2 to radix-4 did cause some speedup

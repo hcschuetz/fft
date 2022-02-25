@@ -1,4 +1,4 @@
-Code performance studies
-based on the Fast Fourier Transformation (FFT) algorithm.
+# Code performance study based on the Fast Fourier Transformation (FFT).
 
-See the subfolders for implementations in different languages.
+This is primarily a study about JavaScript/TypeScript (folder `./js`)
+but there is also some C++ code (folder `./c++`) for comparison.
