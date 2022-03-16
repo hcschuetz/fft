@@ -32,7 +32,7 @@ const getFunc = (name: string) => async(size: number, direction: number = 1) => 
   }
 };
 
-const versionsRaw: string = readFileSync("./versions.txt", "utf-8"); 
+const versionsRaw = readFileSync("./versions.txt", "utf-8");
 
 export const versions = versionsRaw.split(/^=====+/m).map(versionInfo => {
   const {head, comment} =
