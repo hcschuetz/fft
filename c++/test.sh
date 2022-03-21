@@ -54,9 +54,13 @@ EOT
   if test "${base_tech}" = native
   then
     if test "${NOCOMP}" = true; then true; else
+      if test "${TECH}" = C++ -a "${version}" = fft01
+      then source=    # avoid duplicate source file
+      else source="src/${version}.c++"
+      fi
       g++ -std=c++17 -O4 -o ${outdir}/test_${version} \
         ${main_files} \
-        src/${version}.c++
+        ${source}
     fi \
     && \
     ${outdir}/test_${version}
