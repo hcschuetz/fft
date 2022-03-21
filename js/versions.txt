@@ -82,7 +82,11 @@ Copy variables from the outer to the inner fft function.
 :fft16:fft15d
 =====
 :fft40:fft11
-Use 4-way merging
+Use 4-way merging.
+This is actually implemented like 2 layers of 2-way merging.
+The improvement is that we do not store the intermediate results
+between the two layers in the array.  We keep them in scalar variables,
+allowing the compiler to use registers.
 =====
 :fft44:fft40
 Simplify 4-way merging, particularly making use of these facts:
@@ -115,6 +119,6 @@ with pointer arithmetics, which improves efficiency a bit more.
 =====
 :fft99a:fft99
 =====
-tb:fft99b:fft99
+tbu:fft99b:fft99
 =====
-tb:fft99c:fft99b
+tbu:fft99c:fft99b
