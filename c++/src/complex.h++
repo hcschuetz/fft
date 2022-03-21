@@ -7,15 +7,15 @@ class Complex {
   double re, im;
 
 public:
-  double real() const { return this->re; }
-  double imag() const { return this->im; }
-
   Complex(double re, double im) {
     this->re = re;
     this->im = im;
   }
 
   Complex() {} // leave uninitialized like other number types
+
+  double real() const { return this->re; }
+  double imag() const { return this->im; }
 
   Complex operator+(Complex that) const {
     return Complex(
@@ -56,11 +56,12 @@ public:
   double norm() {
     return re*re + im*im;
   }
+
 };
 
-const Complex zero(0.0, 0.0);
+inline const Complex zero(0.0, 0.0);
 
-const Complex expi(double x) {
+inline const Complex expi(double x) {
   return Complex(cos(x), sin(x));
 }
 

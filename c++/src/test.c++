@@ -1,11 +1,13 @@
 #include <math.h>
 #include <iostream>
 #include <iomanip>
+#include <memory>
 #include <time.h>
 
 #include "complex.h++"
 #include "fft01.h++"
-#include "selectVersion.h++"
+#include "fft.h++"
+#include "selectImpl.h++"
 
 const unsigned int randomDepth = 1 << 20;
 const unsigned int randomDepthMask = randomDepth - 1;
@@ -44,8 +46,8 @@ void test() {
   const unsigned int n = 1 << 5;
   double scale = 1.0 / n;
 
-  fft01::FFT fft01(n);
-  fftOtherNS::FFT fftOther(n);
+  FFT01 fft01(n);
+  std::unique_ptr<FFT> fft(new FFTImpl(n));
 
   Complex f[n];
   for (unsigned int i = 0; i < n; i++) {
@@ -55,20 +57,16 @@ void test() {
   Complex out01[n];
   fft01.run(f, out01);
   Complex outOther[n];
-  fftOther.run(f, outOther);
+  fft->run(f, outOther);
   compare("other vs. 01             ", n, outOther, out01);
 
   Complex invOut01[n];
   fft01.run(out01, invOut01, -1);
   Complex invOutOther[n];
-  fftOther.run(outOther, invOutOther, -1);
+  fft->run(outOther, invOutOther, -1);
   compare("ifft*fft (other vs. 01)  ", n, invOutOther, invOut01, scale, scale);
   compare("ifft*fft (other) vs.input", n, invOutOther, f, scale);
   std::cout << "(tests with n = " << n << ")" << std::endl;
-
-  // display("f", 4, 8, f);
-  // display("out01", 4, 8, out01);
-  // display("invOut01", 4, 8, invOut01);
 }
 
 void benchmark() {
@@ -76,8 +74,7 @@ void benchmark() {
   const unsigned int repeat = 2000;
   const unsigned int n = 1 << 11;
 
-  fft01::FFT fft01(n);
-  fftOtherNS::FFT fftOther(n);
+  std::unique_ptr<FFT> fft(new FFTImpl(n));
 
   Complex f[n];
   for (unsigned int i = 0; i < n; i++) {
@@ -87,11 +84,11 @@ void benchmark() {
   Complex out[n];
 
   for (unsigned int i = 0; i < warmup; i++) {
-    fftOther.run(f, out);
+    fft->run(f, out);
   }
   clock_t start = clock();
   for (unsigned int i = 0; i < repeat; i++) {
-    fftOther.run(f, out);
+    fft->run(f, out);
   }
   clock_t end = clock();
   double time_per_run_in_s = (end-start) * 1.0 / (CLOCKS_PER_SEC * repeat);
@@ -101,7 +98,7 @@ void benchmark() {
 }
 
 int main() {
-  std::cout << "### " << fftVersionName << " ###" << std::endl;
+  std::cout << "### " << FFT_VERSION_NAME << " ###" << std::endl;
   test();
   benchmark();
   return 0;

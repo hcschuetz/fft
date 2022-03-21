@@ -1,2 +1,5 @@
-/dst/
-/src/selectVersion.h++
+/src/selectImpl.h++
+/dst_c/
+/dst_c++/
+# We do not ignore dst_js and dst_wasm because (a) these outputs are portable
+# and (b) the outputs can be used even if emscripten is not installed.
