@@ -2,11 +2,11 @@
 
 import { ComplexArray, makeComplexArray } from "fft/dst/complex/ComplexArray.js";
 
-const specialVersions: {
-  [k: string]:
-    (size: number, direction?: number) =>
-      Promise<(data: ComplexArray) => ComplexArray>
-} = {
+type Func =
+  (size: number, direction?: number) =>
+    Promise<(data: ComplexArray) => ComplexArray>;
+
+const specialVersions: Record<string, Func> = {
   fft01: async (size: number, direction: number = 1) => {
     let { fft } = await import("fft/dst/fft/fft01.js");
     return (data: ComplexArray) => fft(data, direction);
@@ -23,7 +23,7 @@ const specialVersions: {
   },
 }
 
-const getFunc = (name: string) => async(size: number, direction: number = 1) => {
+const getFunc = (name: string): Func => async(size: number, direction: number = 1) => {
   let { fft_prepare } = await import(`fft/dst/fft/${name}.js`);
   const fft_run = fft_prepare(size, direction);
   const out = makeComplexArray(size);
@@ -33,7 +33,15 @@ const getFunc = (name: string) => async(size: number, direction: number = 1) => 
   }
 };
 
-const parseVersions = (versionsRaw: string) =>
+export type Version = {
+  actions: string,
+  name: string,
+  basedOn: string[],
+  comment: string,
+  func: Func,
+};
+
+const parseVersions = (versionsRaw: string): Version[] =>
   versionsRaw.split(/^=====+/m).map(versionInfo => {
     const {head, comment} =
       versionInfo.trim()
@@ -45,7 +53,7 @@ const parseVersions = (versionsRaw: string) =>
     };
   });
 
-export async function getIndexedVersions() {
+export async function getIndexedVersions(): Promise<Record<string, Version>> {
   // magic incantation to get the contents of fft/versions.txt in a browser
   const versionsRaw = await (await fetch(require('fft/versions.txt'))).text();
   const versions = parseVersions(versionsRaw);

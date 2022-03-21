@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "tsc": "tsc",
-    "test": "node dst/test.js",
-    "benchmark": "node dst/benchmark.js",
+    "test": "node dst/test/test.js",
+    "benchmark": "node dst/test/benchmark.js",
     "watch:tsc": "tsc --watch",
     "watch:test": "nodemon -e js,txt --delay 1.0 dst/test/test.js",
     "watch:benchmark": "nodemon -e js,txt --delay 1.0 dst/test/benchmark.js",

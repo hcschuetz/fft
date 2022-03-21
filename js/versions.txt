@@ -103,10 +103,12 @@ This implementation applies to 4-way merging some of the refactorings that have
 been applied to 2-way merging elsewhere.
 
 Currently there is only a C++ implementation and no corresponding JS code.
-TODO: Implement this also in JS?  It might not be worthwhile since the
-refactorings increase the code size and already the code size of the 4-way
-merging in fft44 seems to be problematic for the v8 optimizer.  But this might
-be not be the case with other JS engines.
+
+TODO: Implement this also in JS.
+This appeared not to be worthwhile since the refactorings increase the code size
+and already the code size of the 4-way merging in fft44 seems to be problematic
+for the v8 optimizer.  But on Firefox fft44 is actually quite efficient,
+and so further optimization appears promising.
 
 On top of this, the C++ implementation "fft47pointers" replaces array accesses
 with pointer arithmetics, which improves efficiency a bit more.
@@ -119,6 +121,6 @@ with pointer arithmetics, which improves efficiency a bit more.
 =====
 :fft99a:fft99
 =====
-tbu:fft99b:fft99
+tb:fft99b
 =====
-tbu:fft99c:fft99b
+tb:fft99c:fft99b

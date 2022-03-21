@@ -1,11 +1,11 @@
 import { ComplexArray, makeComplexArray } from "../complex/ComplexArray.js";
 import { readFileSync } from "fs";
 
-const specialVersions: {
-  [k: string]:
-    (size: number, direction?: number) =>
-      Promise<(data: ComplexArray) => ComplexArray>
-} = {
+type Func =
+  (size: number, direction?: number) =>
+    Promise<(data: ComplexArray) => ComplexArray>;
+
+const specialVersions: Record<string, Func> = {
   fft01: async (size: number, direction: number = 1) => {
     let { fft } = await import("../fft/fft01.js");
     return (data: ComplexArray) => fft(data, direction);
@@ -22,7 +22,7 @@ const specialVersions: {
   },
 }
 
-const getFunc = (name: string) => async(size: number, direction: number = 1) => {
+const getFunc = (name: string): Func => async(size: number, direction: number = 1) => {
   let { fft_prepare } = await import(`../fft/${name}.js`);
   const fft_run = fft_prepare(size, direction);
   const out = makeComplexArray(size);
@@ -34,7 +34,15 @@ const getFunc = (name: string) => async(size: number, direction: number = 1) => 
 
 const versionsRaw = readFileSync("./versions.txt", "utf-8");
 
-export const versions = versionsRaw.split(/^=====+/m).map(versionInfo => {
+export type Version = {
+  actions: string,
+  name: string,
+  basedOn: string[],
+  comment: string,
+  func: Func,
+};
+
+export const versions: Version[] = versionsRaw.split(/^=====+/m).map(versionInfo => {
   const {head, comment} =
     versionInfo.trim()
     .match(/^(?<head>[^\r\n]*)(?:(?:\r\n|\r|\n)(?<comment>[^]*))?$/)?.groups!;
@@ -45,4 +53,5 @@ export const versions = versionsRaw.split(/^=====+/m).map(versionInfo => {
   };
 });
 
-export const indexedVersions = Object.fromEntries(versions.map(v => [v.name, v]));
+export const indexedVersions: Record<string, Version> =
+  Object.fromEntries(versions.map(v => [v.name, v]));
