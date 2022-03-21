@@ -98,7 +98,6 @@ void benchmark() {
 }
 
 int main() {
-  std::cout << "### " << FFT_VERSION_NAME << " ###" << std::endl;
   test();
   benchmark();
   return 0;

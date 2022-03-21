@@ -55,7 +55,6 @@ EOT
   then
     if test "${NOCOMP}" = true; then true; else
       g++ -std=c++17 -O4 -o ${outdir}/test_${version} \
-        -DFFT_VERSION_NAME=\"${version}\" \
         ${main_files} \
         src/${version}.c++
     fi \
@@ -76,6 +75,6 @@ EOT
         src/${version}.c++ src/c_bindings.c++
     fi \
     && \
-    node test_fft.mjs ${outdir}/${version}.js
+    node test.mjs ${outdir}/${version}.js
   fi
 done
