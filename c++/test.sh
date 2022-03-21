@@ -71,6 +71,7 @@ EOT
         -o ${outdir}/${version}.js \
         -std=c++17 \
         --memory-init-file 0 \
+        -s ENVIRONMENT=web \
         -s MODULARIZE=1 \
         -s WASM=${wasm} \
         -s FILESYSTEM=0 \
