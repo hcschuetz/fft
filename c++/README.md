@@ -18,8 +18,7 @@ TODO: Check how fast the C++ implementations are when compiled to web assembly.
 
 ## API
 
-Each implementation provides a class `FFT` in a namespace identifying the
-version.
+Each implementation provides a class derived from an abstract class `FFT`.
 
 - The constructor is invoked with the size `n` of the FFT task, which should be
   a power of 2.
@@ -44,17 +43,17 @@ to avoid this effort during the `run` phase.
 
 ## Test And Benchmark Code
 
-The program `src/test_fft.c++` performs both correctness tests and benchmarks.
+The FFT implementations can be tested and benchmarked in 4 ways:
 
-For selecting an FFT implementation the program includes an auxiliary header
-`src/selectVersion.h++`, which should contain something like this:
+- compiled to native code and invoked from some C++ code.
+- compiled to native code and invoked from some C code vi a C-language
+  binding.
+- compiled to JavaScript and invoked from some JavaScript code.
+- compiled to WebAssembly (+ some JavaScript wrapper code) and invoked from the
+  same JavaScript code as in the previous case.
 
-    #include "fft47.h++"
-    #define fftOtherNS fft47
-    #define fftVersionName "fft47"
-
-(The script `test.sh` described below writes this file automatically before
-compiling.)
+The calling code performs both correctness tests and benchmarks.
+(But not all callers perform all tests/benchmarks described below!)
 
 The input for tests and benchmarks is created from pseudo-random values.
 
@@ -83,13 +82,15 @@ instance) a number of times and displays
 - the number of runs that would fit in one second of CPU time according to this
   running time.
 
+Some 
+
 ## Running Tests
 
-*The script `test.sh` assumes that you have a Bourne shell (or bash) as well as `g++` installed.*
+*The script `test.sh` assumes that you have a Bourne shell (or bash) as well as `g++` and `emcc` installed and in your PATH.*
 *Adapt that script as needed or compile and run the test program manually.*
 
 Call the shell script `test.sh` without arguments to compile and run all the fft
-implementations matching `src/fft*.h++`:
+implementations:
 
     ./test.sh
 
@@ -100,11 +101,17 @@ or
 Alternatively pass as arguments the names of those fft implementations you
 want to compile and run:
 
-    ./test.sh src/fft01.h++ src/fft02.h++
+    ./test.sh src/fft01.c++ src/fft02.c++
 
-You can set the environment parameter NOCOMP to `true` to omit the compilation
+You can set the environment variable NOCOMP to `true` to omit the compilation
 and to run the existing binary/binaries:
 
-    NOCOMP=true ./test.sh src/fft02.h++ src/fft02.h++ src/fft02.h++
+    NOCOMP=true ./test.sh src/fft02.c++ src/fft02.c++ src/fft02.c++
 
 runs fft02 three times without compilation.
+
+You can select one of the 4 ways of compilation/invokation described above by
+setting the environment variable TECH to `C++`, `C`, `JS` or `WASM`.
+For example:
+
+    TECH=WASM ./test.sh src/fft44.c++
