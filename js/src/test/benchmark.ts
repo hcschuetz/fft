@@ -1,3 +1,4 @@
+import { performance } from 'perf_hooks'; // needed for node 14; not needed for node 16
 import { complexArrayLength } from "../complex/ComplexArray.js";
 import { versions } from "./versions.js";
 import { makeTestData } from "./utils.js";

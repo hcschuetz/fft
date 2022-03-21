@@ -1,4 +1,4 @@
-import { performance } from 'perf_hooks';
+import { performance } from 'perf_hooks'; // needed for node 14; not needed for node 16
 
 const jsModule = "./" + process.argv[2];
 
