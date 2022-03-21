@@ -70,6 +70,7 @@ EOT
       emcc \
         -o ${outdir}/${version}.js \
         -std=c++17 \
+        --memory-init-file 0 \
         -s MODULARIZE=1 \
         -s WASM=${wasm} \
         -s FILESYSTEM=0 \
