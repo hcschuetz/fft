@@ -1,6 +1,7 @@
 // TODO factor out common functionality with ../../js/src/test/versions.js?
 
 import { ComplexArray, makeComplexArray } from "fft/dst/complex/ComplexArray.js";
+import { cppVersions } from "./cppVersions.js";
 
 type Func =
   (size: number, direction?: number) =>
@@ -56,6 +57,9 @@ const parseVersions = (versionsRaw: string): Version[] =>
 export async function getIndexedVersions(): Promise<Record<string, Version>> {
   // magic incantation to get the contents of fft/versions.txt in a browser
   const versionsRaw = await (await fetch(require('fft/versions.txt'))).text();
-  const versions = parseVersions(versionsRaw);
+  const versions = [
+    ...parseVersions(versionsRaw),
+    ...cppVersions(),
+  ];
   return Object.fromEntries(versions.map(v => [v.name, v]));
 }
