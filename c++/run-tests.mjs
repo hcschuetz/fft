@@ -98,6 +98,7 @@ If present, it should be "C", "C++", "JS" or "WASM".`);
         break;
       }
       case "web": {
+        let mainFile = `${outDir}/${version}.js`;
         if (!noComp) {
           await spawnCommand(emcc, [
             "-o", `${outDir}/${version}.js`,
@@ -115,25 +116,27 @@ If present, it should be "C", "C++", "JS" or "WASM".`);
             "-O3",
             `src/${version}.c++`, "src/c_bindings.c++",
           ]);
-          // We now wrap the generated code in a JS module.
-          // This is slightly hacky because the wrapper code makes assumptions
-          // about internals of the emitted code.
-          // But creating a .mjs directly with emcc causes other errors
-          // with webpack for the browser.
-          // (In some circumstances, but unfortunately not all, the plain .js
-          // file can be imported like a JS module.)
-          const compilerOutput = await readFile(`${outDir}/${version}.js`);
-          await writeFile(`${outDir}/${version}.mjs`, `
+          if (tech == "JS") {
+            // We now wrap the generated code in a JS module.
+            // This is a bit hacky because the wrapper code makes assumptions
+            // about internals of the emitted code (and it actually does not
+            // work for tech == "WASM").
+            // But creating a .mjs directly with emcc causes errors
+            // with webpack for the browser.
+            const compilerOutput = await readFile(mainFile);
+            await rm(mainFile);
+            mainFile = `${outDir}/${version}.mjs`;
+            await writeFile(mainFile, `
 const exports = {}, module = {};
 // BEGIN EMCC OUTPUT
 ${compilerOutput}
 // END EMCC OUTPUT
 export default Module;
 `);
-          await rm(`${outDir}/${version}.js`);
+          }
         }
         if (!noRun) {
-          await spawnCommand("node", ["test.mjs", `${outDir}/${version}.mjs`]);
+          await spawnCommand("node", ["test.mjs", mainFile]);
         }
         break;
       }
