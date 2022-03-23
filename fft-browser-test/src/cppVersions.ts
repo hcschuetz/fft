@@ -20,9 +20,13 @@ export const cppVersions = () => modules.map(name => {
       const output = instance._malloc(size * 16);
       const fft = instance._prepare_fft(size);
       // TODO Use finalization (FinalizationRegistry) to call
-      // instance._free(input)
-      // instance._free(output)
-      // instance._delete_fft(fft)
+      //   instance._free(input)
+      //   instance._free(output)
+      //   instance._delete_fft(fft)
+      // to avoid a memory leak?
+      // But probably the memory can be garbage-collected together with the
+      // instance anyway.
+      // (And we have no need to free input/output/fft before the instance.)
     
       const out = makeComplexArray(size);
 
@@ -30,16 +34,18 @@ export const cppVersions = () => modules.map(name => {
         // TODO avoid data reshuffling (in particular for benchmarks)
         for (let i = 0; i < size; i++) {
           const {re, im} = getComplex(data, i);
-          instance.setValue(input + 16 * i    , re, "double");
-          instance.setValue(input + 16 * i + 8, im, "double");
+          const addr = input + 16 * i;
+          instance.setValue(addr    , re, "double");
+          instance.setValue(addr + 8, im, "double");
         }
 
         instance._run_fft(fft, input, output, direction);
 
         for (let i = 0; i < size; i++) {
+          const addr = output + 16 * i;
           setComplex(out, i, {
-            re: instance.getValue(output + 16 * i    , "double"),
-            im: instance.getValue(output + 16 * i + 8, "double"),
+            re: instance.getValue(addr    , "double"),
+            im: instance.getValue(addr + 8, "double"),
           });
         }
 
