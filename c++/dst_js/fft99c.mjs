@@ -1,4 +1,7 @@
 
+const exports = {}, module = {};
+// BEGIN EMCC OUTPUT
+
 var Module = (() => {
   var _scriptDir = typeof document !== 'undefined' && document.currentScript ? document.currentScript.src : undefined;
   
@@ -32,3 +35,6 @@ else if (typeof define === 'function' && define['amd'])
   define([], function() { return Module; });
 else if (typeof exports === 'object')
   exports["Module"] = Module;
+
+// END EMCC OUTPUT
+export default Module;
