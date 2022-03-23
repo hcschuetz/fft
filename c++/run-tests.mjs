@@ -3,6 +3,8 @@
 import { spawn } from "child_process";
 import { mkdir, readdir, writeFile } from "fs/promises";
 
+const emcc = process.platform === "win32" ? "emcc.bat" : "emcc";
+
 async function spawnCommand(cmd, args) {
   await new Promise(resolve => {
     const child = spawn(cmd, args);
@@ -95,7 +97,7 @@ If present, it should be "C", "C++", "JS" or "WASM".`);
       }
       case "web": {
         if (!noComp) {
-          await spawnCommand("emcc", [
+          await spawnCommand(emcc, [
             "-o", `${outDir}/${version}.js`,
             "-std=c++17",
             "--memory-init-file", "0",

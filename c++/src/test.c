@@ -3,13 +3,10 @@
 #include <time.h>
 #include "fft.h"
 
-const unsigned int LOG2_RANDOM_LIMIT = 20;
-const unsigned int RANDOM_LIMIT = 1 << LOG2_RANDOM_LIMIT;
-const unsigned int RANDOM_MASK = RANDOM_LIMIT - 1;
-const double RANDOM_SCALE = 1.0 / RANDOM_LIMIT;
+const double RAND_SCALE = 1.0 / ((double) RAND_MAX + 1.0);
 
 double randomDouble() {
-  return (random() & RANDOM_MASK) * RANDOM_SCALE;
+  return rand() * RAND_SCALE;
 }
 
 Complex randomComplex() {

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <iomanip>
 #include <memory>
+#include <random>
+#include <stdlib.h>
 #include <time.h>
 
 #include "complex.h++"
@@ -9,12 +11,11 @@
 #include "fft.h++"
 #include "selectImpl.h++"
 
-const unsigned int randomDepth = 1 << 20;
-const unsigned int randomDepthMask = randomDepth - 1;
-const double randomDepthDouble = 1.0 * randomDepth;
+std::mt19937 generator(1234);
+std::uniform_real_distribution distribution(0.0, 1.0);
 
 double randomDouble() {
-  return (random() & randomDepthMask) / randomDepthDouble;
+  return distribution(generator);
 }
 
 Complex randomComplex() {
