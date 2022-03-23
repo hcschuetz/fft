@@ -1,7 +1,7 @@
 // TODO factor out common functionality with ../../js/src/test/versions.js?
 
-import { ComplexArray, makeComplexArray } from "fft/dst/complex/ComplexArray.js";
-import { cppVersions } from "./cppVersions.js";
+import { ComplexArray, makeComplexArray } from "fft/dst/complex/ComplexArray";
+import { cppVersions } from "./cppVersions";
 
 type Func =
   (size: number, direction?: number) =>

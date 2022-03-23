@@ -1,5 +1,4 @@
-// TODO convert to TypeScript
-import { getComplex, makeComplexArray, setComplex } from "fft/dst/complex/ComplexArray";
+import { ComplexArray, getComplex, makeComplexArray, setComplex } from "fft/dst/complex/ComplexArray";
 
 const modules = `
   fft01 fft02
@@ -14,7 +13,7 @@ export const cppVersions = () => modules.map(name => {
     actions: "tb", // TODO make configurable
     basedOn: [],
     comment: "C++ code compiled by emscripten",
-    func: async (size, direction = 1) => {
+    func: async (size: number, direction: number = 1) => {
       const module = await import(`fft_cpp_js/${name}.mjs`);
       const instance = await (module.default)();
       const input = instance._malloc(size * 16);
@@ -27,7 +26,7 @@ export const cppVersions = () => modules.map(name => {
     
       const out = makeComplexArray(size);
 
-      return data => {
+      return (data: ComplexArray) => {
         // TODO avoid data reshuffling (in particular for benchmarks)
         for (let i = 0; i < size; i++) {
           const {re, im} = getComplex(data, i);
