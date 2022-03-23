@@ -1,0 +1,5 @@
+{
+  "name": "fft_cpp_js",
+  "description": "FFT implementations; JS code generated from C++ by emscripten",
+  "license": "MIT"
+}
