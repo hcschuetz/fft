@@ -6,14 +6,16 @@ import { mkdir, readdir, readFile, rm, writeFile } from "fs/promises";
 const emcc = process.platform === "win32" ? "emcc.bat" : "emcc";
 
 async function spawnCommand(cmd, args) {
-  await new Promise(resolve => {
+  // console.log("spawn:", [cmd, ...args].join(" "));
+  await new Promise((resolve, reject) => {
     const child = spawn(cmd, args);
     child.stdout.pipe(process.stdout);
     child.stderr.pipe(process.stderr);
-    // We simply terminate the process upon a non-0 exit code.
-    // A more flexible implementation would just reject the promise and leave it
-    // to the caller what to do.
-    child.on('close', (code) => code === 0 ? resolve() : process.exit(code));
+    child.on('close', (code) =>
+      code === 0
+      ? resolve()
+      : reject(new Error(`Command "${cmd}" failed with exit code ${code}.`))
+    );
   });
 }
 
@@ -140,4 +142,13 @@ export default Module;
 
 }
 
-main();
+async function runMain() {
+  try {
+    await main();
+  } catch (e) {
+    console.error(e);
+    process.exit(0);
+  }
+}
+
+runMain();
