@@ -22,6 +22,12 @@ const BenchmarkFieldCalls = styled(BenchmarkField)`
   background: #eee
 `;
 
+const visualizationModes = [
+  "time per call (shorter is better)",
+  "logarithmic (greener is better)",
+  "calls per second (longer is better)",
+];
+
 export const Benchmark: FC = () => {
   const [testVersions, setTestVersions] = useState({} as Record<string, boolean>);
 
@@ -44,6 +50,8 @@ export const Benchmark: FC = () => {
       fastest: Math.min(fastest, time),
       slowest: Math.max(slowest, time),
     }));
+
+  const [visualizationModeIdx, setVisualizationModeIdx] = useState(0);
 
   const callCount = useRef(0);
 
@@ -183,7 +191,6 @@ export const Benchmark: FC = () => {
         {} <button onClick={() => compute(++callCount.current)}>Run Benchmarks</button>
         {} <button onClick={() => ++callCount.current}>Stop Benchmarks</button>
       </p>
-      <p>have range: {String(haveRange)} ({fastest.toExponential(3)}, {slowest.toExponential(3)})</p>
       <Table>
         <thead>
           <tr>
@@ -191,7 +198,14 @@ export const Benchmark: FC = () => {
             <TH colSpan={nBlocks}>
               time per call (in microseconds)
             </TH>
-            {haveRange && <TH rowSpan={2}>time visualization (shorter is better)</TH>}
+            {haveRange && <TH rowSpan={2}>
+              {visualizationModes[visualizationModeIdx]}
+              <br/>
+              <input type="range" min="0" max={visualizationModes.length - 1}
+                value={visualizationModeIdx}
+                onChange={event => setVisualizationModeIdx(Number(event.target.value))}
+              />
+            </TH>}
           </tr>
           <tr>
             <TH colSpan={nBlocks} style={{background: "#eee"}}>
@@ -211,17 +225,12 @@ export const Benchmark: FC = () => {
                 ))}
                 {haveRange &&
                   <TH rowSpan={2} style={{padding: 5}}>
-                    <svg viewBox="0 0 10 1" style={{width: "30em", height: "3em"}}>
-                      {times.map((time, blockNo) => typeof(time) === "number" && (
-                        <rect
-                          x="0%"
-                          y={(blockNo + 0.2) / times.length * 100 + "%"}
-                          width={time / slowest * 100 + "%"}
-                          height={60 / times.length + "%"}
-                          fill="red"
-                        />
-                      ))}
-                    </svg>
+                    <NBlocksVisualization
+                      idx={visualizationModeIdx}
+                      times={times}
+                      fastest={fastest}
+                      slowest={slowest}
+                    />
                   </TH>
                 }
               </tr>
@@ -239,3 +248,72 @@ export const Benchmark: FC = () => {
     </>
   );
 };
+
+const NBlocksVisualization: FC<{
+  idx: number,
+  times: benchmarkState[],
+  fastest: number,
+  slowest: number,
+}> = ({idx, times, slowest, fastest}) => {
+  switch (idx) {
+    case 0:
+      return (
+        <svg viewBox="0 0 10 1" style={{width: "30em", height: "3em"}}>
+          {times.map((time, blockNo) => typeof(time) === "number" && (
+            <rect
+              x="0%"
+              y={(blockNo + 0.2) / times.length * 100 + "%"}
+              width={time / slowest * 100 + "%"}
+              height={60 / times.length + "%"}
+              fill="darkred"
+            />
+          ))}
+        </svg>
+      );
+    case 1:
+      return (
+        <svg viewBox="0 0 10 1" style={{width: "30em", height: "3em"}}>
+          {times.map((time, blockNo) => {
+            if (typeof(time) !== "number") return null;
+            const logFastest = Math.log(fastest);
+            const logSlowest = Math.log(slowest);
+            const logTime = Math.log(time);
+            const fraction = (logTime - logFastest) / (logSlowest - logFastest);
+            return (
+              <>
+                <rect
+                  x="0%"
+                  y={(blockNo + 0.2) / times.length * 100 + "%"}
+                  width={fraction * 100 + "%"}
+                  height={60 / times.length + "%"}
+                  fill="darkred"
+                />
+                <rect
+                  x={fraction * 100 + "%"}
+                  y={(blockNo + 0.2) / times.length * 100 + "%"}
+                  width={(1 - fraction) * 100 + "%"}
+                  height={60 / times.length + "%"}
+                  fill="lightgreen"
+                />
+              </>
+            );
+          })}
+        </svg>
+      );
+    case 2:
+      return (
+        <svg viewBox="0 0 10 1" style={{width: "30em", height: "3em"}}>
+          {times.map((time, blockNo) => typeof(time) === "number" && (
+            <rect
+              x="0%"
+              y={(blockNo + 0.2) / times.length * 100 + "%"}
+              width={fastest / time * 100 + "%"}
+              height={60 / times.length + "%"}
+              fill="lightgreen"
+            />
+          ))}
+        </svg>
+      );
+    default: return null;
+  }
+}
