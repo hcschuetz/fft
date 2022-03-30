@@ -4,7 +4,7 @@
 
 int main() {
   int direction;
-  const unsigned int n;
+  unsigned int n;
   struct Complex *f, *out;
 
   scanf("%d", &direction);
