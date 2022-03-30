@@ -1,5 +1,5 @@
 import { abs2, Complex, minus, timesScalar } from "complex/dst/Complex";
-import { ComplexArray, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray";
+import { ComplexArray, getComplex, makeComplexArray } from "complex/dst/ComplexArray";
 import { makeTestData } from "./test-utils";
 import { FC, Fragment, useState } from "react";
 import styled from "styled-components";
