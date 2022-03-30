@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnCommand } from "./spawnCommand";
+import { spawnCommand } from "./spawnCommand.mjs";
 
 async function runNative({version}) {
   await spawnCommand(`test/bin/perf_${version}`);
