@@ -51,6 +51,7 @@ async function compileNativeTest() {
     "-c",
     "-o", perf_o,
     "-I", "src",
+    "-std=c++17",
     "test/native/perf.c++",
   ]);
 }
