@@ -187,8 +187,13 @@ export const Benchmark: FC = () => {
         </tbody>
       </table>
       <p>
-        Execute:
-        {} <button onClick={() => compute(++callCount.current)}>Run Benchmarks</button>
+        Execute: {}
+        <button
+          onClick={() => compute(++callCount.current)}
+          disabled={!Object.values(testVersions).some(value => value)}
+        >
+          Run Benchmarks
+        </button>
         {} <button onClick={() => ++callCount.current}>Stop Benchmarks</button>
       </p>
       <Table>
