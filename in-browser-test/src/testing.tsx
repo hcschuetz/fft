@@ -193,52 +193,56 @@ export const Tests: FC = () => {
           Run Tests
         </button>
       </p>
-      <Table>
-        <thead>
-          <tr>
-            <TH/>
-            <SeparatorField/>
-            <TH>ifft∘fft</TH>
-            <SeparatorField/>
-            {Object.keys(results).map(name2 => (
-              <TH key={name2}>vs. {name2}</TH>
-            ))}
-          </tr>
-          <tr>
-            <SeparatorRowField colSpan={3 + resultEntries.length}/>
-          </tr>
-        </thead>
-        <tbody>
-          {resultEntries.map(([name, result]) => (
-            <Fragment key={name}>
+      {Object.keys(results).length > 0 && (
+        <>
+          <Table>
+            <thead>
               <tr>
-                <TH>{name}</TH>
-                {result instanceof Error ? (
-                  <TestField colSpan={2 + resultEntries.length} error>
-                    {result.message}
-                  </TestField>
-                ) : (
-                  <>
-                    <SeparatorField/>
-                    <DiffField>{result.ifft_fft}</DiffField>
-                    <SeparatorField/>
-                    {resultEntries.map(([name2, result2]) => (
-                      <Fragment key={name2}>
-                        {
-                          name === name2           ? <TestField irrelevant/> :
-                          result2 instanceof Error ? <TestField error/> :
-                          <DiffField>{result.vs[name2]}</DiffField>
-                        }
-                      </Fragment>
-                    ))}
-                  </>
-                )}
+                <TH/>
+                <SeparatorField/>
+                <TH>ifft∘fft</TH>
+                <SeparatorField/>
+                {Object.keys(results).map(name2 => (
+                  <TH key={name2}>vs. {name2}</TH>
+                ))}
               </tr>
-            </Fragment>
-          ))}
-        </tbody>
-      </Table>
-      <Legend/>
+              <tr>
+                <SeparatorRowField colSpan={3 + resultEntries.length}/>
+              </tr>
+            </thead>
+            <tbody>
+              {resultEntries.map(([name, result]) => (
+                <Fragment key={name}>
+                  <tr>
+                    <TH>{name}</TH>
+                    {result instanceof Error ? (
+                      <TestField colSpan={2 + resultEntries.length} error>
+                        {result.message}
+                      </TestField>
+                    ) : (
+                      <>
+                        <SeparatorField/>
+                        <DiffField>{result.ifft_fft}</DiffField>
+                        <SeparatorField/>
+                        {resultEntries.map(([name2, result2]) => (
+                          <Fragment key={name2}>
+                            {
+                              name === name2           ? <TestField irrelevant/> :
+                              result2 instanceof Error ? <TestField error/> :
+                              <DiffField>{result.vs[name2]}</DiffField>
+                            }
+                          </Fragment>
+                        ))}
+                      </>
+                    )}
+                  </tr>
+                </Fragment>
+              ))}
+            </tbody>
+          </Table>
+          <Legend/>
+        </>
+      )}
     </>
   );
 };

@@ -196,64 +196,66 @@ export const Benchmark: FC = () => {
         </button>
         {} <button onClick={() => ++callCount.current}>Stop Benchmarks</button>
       </p>
-      <Table>
-        <thead>
-          <tr>
-            <TH rowSpan={2}/>
-            <TH colSpan={nBlocks}>
-              time per call (in microseconds)
-            </TH>
-            {haveRange && <TH rowSpan={2}>
-              {visualizationModes[visualizationModeIdx]}
-              <br/>
-              <input type="range" min="0" max={visualizationModes.length - 1}
-                value={visualizationModeIdx}
-                onChange={event => setVisualizationModeIdx(Number(event.target.value))}
-              />
-            </TH>}
-          </tr>
-          <tr>
-            <TH colSpan={nBlocks} style={{background: "#eee"}}>
-              calls per second
-            </TH>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(results).map(([name, times]) => (
-            <Fragment key={name}>
-              <tr>
-                <TH rowSpan={2}>{name}</TH>
-                {times.map((time, j) => (
-                  <BenchmarkField key={j}>
-                    {typeof(time) === "number" ? (time * 1e6).toFixed(1) : time}
-                  </BenchmarkField>
-                ))}
-                {haveRange &&
-                  <TH rowSpan={2} style={{verticalAlign: "middle"}}>
-                    <svg viewBox="0 0 10 1" style={{width: "25em", height: "2.5em"}}>
-                      {times.map((time, blockNo) => typeof(time) === "number" && (
-                        <BlockVisualization
-                          key={blockNo}
-                          idx={visualizationModeIdx}
-                          blockNo={blockNo} nBlocks={times.length}
-                          time={time} fastest={fastest} slowest={slowest}
-                        />
-                      ))}
-                    </svg>
-                  </TH>
-                }
-              </tr>
-              <tr>
-                {times.map((time, j) => (
-                  <BenchmarkFieldCalls key={j}>
-                    {typeof(time) === "number" ? (1/time).toFixed() : ""}
-                  </BenchmarkFieldCalls>
-                ))}
-              </tr>
-            </Fragment>
-        ))}
-        </tbody>
-      </Table>
+      {Object.keys(results).length > 0 && (
+        <Table>
+          <thead>
+            <tr>
+              <TH rowSpan={2}/>
+              <TH colSpan={nBlocks}>
+                time per call (in microseconds)
+              </TH>
+              {haveRange && <TH rowSpan={2}>
+                {visualizationModes[visualizationModeIdx]}
+                <br/>
+                <input type="range" min="0" max={visualizationModes.length - 1}
+                  value={visualizationModeIdx}
+                  onChange={event => setVisualizationModeIdx(Number(event.target.value))}
+                />
+              </TH>}
+            </tr>
+            <tr>
+              <TH colSpan={nBlocks} style={{background: "#eee"}}>
+                calls per second
+              </TH>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(results).map(([name, times]) => (
+              <Fragment key={name}>
+                <tr>
+                  <TH rowSpan={2}>{name}</TH>
+                  {times.map((time, j) => (
+                    <BenchmarkField key={j}>
+                      {typeof(time) === "number" ? (time * 1e6).toFixed(1) : time}
+                    </BenchmarkField>
+                  ))}
+                  {haveRange &&
+                    <TH rowSpan={2} style={{verticalAlign: "middle"}}>
+                      <svg viewBox="0 0 10 1" style={{width: "25em", height: "2.5em"}}>
+                        {times.map((time, blockNo) => typeof(time) === "number" && (
+                          <BlockVisualization
+                            key={blockNo}
+                            idx={visualizationModeIdx}
+                            blockNo={blockNo} nBlocks={times.length}
+                            time={time} fastest={fastest} slowest={slowest}
+                          />
+                        ))}
+                      </svg>
+                    </TH>
+                  }
+                </tr>
+                <tr>
+                  {times.map((time, j) => (
+                    <BenchmarkFieldCalls key={j}>
+                      {typeof(time) === "number" ? (1/time).toFixed() : ""}
+                    </BenchmarkFieldCalls>
+                  ))}
+                </tr>
+              </Fragment>
+          ))}
+          </tbody>
+        </Table>
+      )}
     </>
   );
 };
