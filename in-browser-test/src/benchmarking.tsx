@@ -24,13 +24,26 @@ const BenchmarkFieldCalls = styled(BenchmarkField)`
 
 export const Benchmark: FC = () => {
   const [testVersions, setTestVersions] = useState({} as Record<string, boolean>);
+
   const [log2n, setLog2n] = useState(11);
   const n = 1 << log2n;
+
   const [nBlocks, setNBlocks] = useState(2);
+
   const [blockSizeIdx, setBlockSizeIdx] = useState(4);
   const blockSize = blockSizes[blockSizeIdx];
+
   const [coolDownTime, setCoolDownTime] = useState(0);
   const [results, setResults] = useState({} as Record<string, benchmarkState[]>);
+
+  const initialRange = {fastest: Number.POSITIVE_INFINITY, slowest: 0};
+  const [range, setRange] = useState(initialRange);
+  const resetRange = () => setRange(initialRange);
+  const adaptRange = (time: number): void =>
+    setRange(({fastest, slowest}) => ({
+      fastest: Math.min(fastest, time),
+      slowest: Math.max(slowest, time),
+    }));
 
   const callCount = useRef(0);
 
@@ -48,6 +61,7 @@ export const Benchmark: FC = () => {
 
     try {
       log("==== start");
+      resetRange();
       const data = makeTestData(n);
       const out = makeComplexArray(n);
       const results: Record<string, benchmarkState[]> =
@@ -81,7 +95,9 @@ export const Benchmark: FC = () => {
             fft(data, out, 1);
           }
           checkStop("C");
-          times[i] = (performance.now() - start) * 1e-3 / blockSize;
+          const time = (performance.now() - start) * 1e-3 / blockSize;
+          times[i] = time;
+          adaptRange(time);
           setResults({...results});
           await sleep(0);
         }
@@ -91,6 +107,9 @@ export const Benchmark: FC = () => {
       log(e);
     }
   }
+
+  const {fastest, slowest} = range;
+  const haveRange = fastest < slowest;
 
   return (
     <>
@@ -164,13 +183,15 @@ export const Benchmark: FC = () => {
         {} <button onClick={() => compute(++callCount.current)}>Run Benchmarks</button>
         {} <button onClick={() => ++callCount.current}>Stop Benchmarks</button>
       </p>
+      <p>have range: {String(haveRange)} ({fastest.toExponential(3)}, {slowest.toExponential(3)})</p>
       <Table>
         <thead>
           <tr>
-            <TH rowSpan={2}>name</TH>
+            <TH rowSpan={2}/>
             <TH colSpan={nBlocks}>
               time per call (in microseconds)
             </TH>
+            {haveRange && <TH rowSpan={2}>time visualization (shorter is better)</TH>}
           </tr>
           <tr>
             <TH colSpan={nBlocks} style={{background: "#eee"}}>
@@ -182,12 +203,27 @@ export const Benchmark: FC = () => {
           {Object.entries(results).map(([name, times]) => (
             <Fragment key={name}>
               <tr>
-                <TD rowSpan={2}>{name}</TD>
+                <TH rowSpan={2}>{name}</TH>
                 {times.map((time, j) => (
                   <BenchmarkField key={j}>
                     {typeof(time) === "number" ? (time * 1e6).toFixed(1) : time}
                   </BenchmarkField>
                 ))}
+                {haveRange &&
+                  <TH rowSpan={2} style={{padding: 5}}>
+                    <svg viewBox="0 0 10 1" style={{width: "30em", height: "3em"}}>
+                      {times.map((time, blockNo) => typeof(time) === "number" && (
+                        <rect
+                          x="0%"
+                          y={(blockNo + 0.2) / times.length * 100 + "%"}
+                          width={time / slowest * 100 + "%"}
+                          height={60 / times.length + "%"}
+                          fill="red"
+                        />
+                      ))}
+                    </svg>
+                  </TH>
+                }
               </tr>
               <tr>
                 {times.map((time, j) => (
