@@ -29,7 +29,7 @@ const visualizationModes = [
 ];
 
 export const Benchmark: FC = () => {
-  const [testVersions, setTestVersions] = useState({} as Record<string, boolean>);
+  const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
 
   const [log2n, setLog2n] = useState(11);
   const n = 1 << log2n;
@@ -40,7 +40,7 @@ export const Benchmark: FC = () => {
   const blockSize = blockSizes[blockSizeIdx];
 
   const [coolDownTime, setCoolDownTime] = useState(0);
-  const [results, setResults] = useState({} as Record<string, benchmarkState[]>);
+  const [results, setResults] = useState<Record<string, benchmarkState[]>>({});
 
   const initialRange = {fastest: Number.POSITIVE_INFINITY, slowest: 0};
   const [range, setRange] = useState(initialRange);

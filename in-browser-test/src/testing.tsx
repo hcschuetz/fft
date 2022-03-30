@@ -101,10 +101,10 @@ const Legend: FC<{}> = () => (
 );
 
 export const Tests: FC = () => {
-  const [testVersions, setTestVersions] = useState({} as Record<string, boolean>);
+  const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
   const [log2n, setLog2n] = useState(11);
   const n = 1 << log2n;
-  const [results, setResults] = useState({} as Results);
+  const [results, setResults] = useState<Results>({});
 
   async function runFFTs() {
     const data = makeTestData(n);
