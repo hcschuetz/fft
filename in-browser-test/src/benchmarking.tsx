@@ -201,7 +201,7 @@ export const Benchmark: FC = () => {
           <thead>
             <tr>
               <TH rowSpan={2}/>
-              <TH colSpan={nBlocks}>
+              <TH colSpan={Object.values(results)[0].length}>
                 time per call (in microseconds)
               </TH>
               {haveRange && <TH rowSpan={2}>
@@ -214,7 +214,7 @@ export const Benchmark: FC = () => {
               </TH>}
             </tr>
             <tr>
-              <TH colSpan={nBlocks} style={{background: "#eee"}}>
+              <TH colSpan={Object.values(results)[0].length} style={{background: "#eee"}}>
                 calls per second
               </TH>
             </tr>
