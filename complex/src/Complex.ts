@@ -20,9 +20,15 @@ export const timesScalar = (x: Complex, y: number): Complex => ({
   im: x.im * y,
 });
 
-export const conj = (x: Complex): Complex => ({
-  re: x.re,
-  im: -x.im,
+export const conj = ({re, im}: Complex): Complex => ({
+  re: re,
+  im: -im,
+});
+
+/** multiply by i */
+export const rot90 = ({re, im}: Complex): Complex => ({
+  re: -im,
+  im: re,
 });
 
 /** returns the norm (squared absolute value) of a complex number */
