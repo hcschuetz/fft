@@ -23,15 +23,15 @@ const BenchmarkFieldCalls = styled(BenchmarkField)`
 `;
 
 const visualizationModes = [
-  "time per call",
-  "logarithmic",
   "calls per second",
+  "logarithmic",
+  "time per call",
 ];
 
 const visualizationModesBetter = [
-  "🠔 better",
-  "🠔 better",
   "better 🠖",
+  "🠔 better",
+  "🠔 better",
 ];
 
 export const Benchmark: FC = () => {
@@ -57,7 +57,7 @@ export const Benchmark: FC = () => {
       slowest: Math.max(slowest, time),
     }));
 
-  const [visualizationModeIdx, setVisualizationModeIdx] = useState(0);
+  const [visualizationModeIdx, setVisualizationModeIdx] = useState(2);
 
   const callCount = useRef(0);
 
@@ -210,7 +210,7 @@ export const Benchmark: FC = () => {
                 time per call (in microseconds)
               </TH>
               <TD rowSpan={2} style={{verticalAlign: "top"}}>
-                <input style={{transform: "rotate(90deg)", width: "3em", height: "3em"}}
+                <input style={{transform: "rotate(-90deg)", width: "3em", height: "3em"}}
                   type="range" min="0" max={visualizationModes.length - 1}
                   value={visualizationModeIdx}
                   onChange={event => setVisualizationModeIdx(Number(event.target.value))}
