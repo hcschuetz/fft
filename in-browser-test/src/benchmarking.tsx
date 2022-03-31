@@ -272,7 +272,7 @@ const BlockVisualization: FC<{
   blockNo: number, nBlocks: number,
   time: number, fastest: number, slowest: number,
 }> = ({idx, blockNo, nBlocks, time, slowest, fastest}) => {
-  if (fastest > slowest || idx === 1 && fastest >= slowest) {
+  if (fastest > slowest || (idx === 1 && fastest >= slowest)) {
     return null;
   }
   const y = (blockNo + 0.2) / nBlocks * 100 + "%";
