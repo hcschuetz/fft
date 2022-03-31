@@ -10,7 +10,7 @@ const sleep = (ms: number): Promise<undefined> =>
 
 const blockSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
 
-type benchmarkState = number | "" | "cooling" | "running";
+type benchmarkState = number | "" | "pause" | "run";
 
 const BenchmarkField = styled(TD)`
   height: 2.8ex;
@@ -39,7 +39,7 @@ export const Benchmark: FC = () => {
   const [blockSizeIdx, setBlockSizeIdx] = useState(4);
   const blockSize = blockSizes[blockSizeIdx];
 
-  const [coolDownTime, setCoolDownTime] = useState(0);
+  const [pause, setPause] = useState(0);
   const [results, setResults] = useState<Record<string, benchmarkState[]>>({});
 
   const initialRange = {fastest: Number.POSITIVE_INFINITY, slowest: 0};
@@ -86,17 +86,17 @@ export const Benchmark: FC = () => {
         log("got func")
         for (let i = 0; i < nBlocks; i++) {
           checkStop("A");
-          if (coolDownTime > 0) {
-            times[i] = "cooling";
+          if (pause > 0) {
+            times[i] = "pause";
             setResults({...results});
-            log("cool down", name, i);
-            await sleep(coolDownTime * 1e3);
-            log("cooled down", name, i);
+            log("begin pause", name, i);
+            await sleep(pause * 1e3);
+            log("end pause", name, i);
             checkStop("B");
           }
           const start = performance.now();
           log("run", name, i);
-          times[i] = "running";
+          times[i] = "run";
           setResults({...results});
           await sleep(0);
           for (let j = 0; j < blockSize; j++) {
@@ -171,18 +171,18 @@ export const Benchmark: FC = () => {
           </tr>
           <tr>
             <td>
-              <label htmlFor="coolDownTimeInput">
-                cool-down time (seconds) between blocks:
+              <label htmlFor="pauseInput">
+                pause before block:
               </label>
             </td>
             <TDInput>
-              <input id="coolDownTimeInput" type="range"
+              <input id="pauseInput" type="range"
                 min={0} max={60}
-                value={coolDownTime}
-                onChange={event => setCoolDownTime(Number(event.target.value))}
+                value={pause}
+                onChange={event => setPause(Number(event.target.value))}
               />
             </TDInput>
-            <TDOutput>{coolDownTime}</TDOutput>
+            <TDOutput>{pause} s</TDOutput>
           </tr>
         </tbody>
       </table>
