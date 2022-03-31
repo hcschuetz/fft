@@ -23,9 +23,15 @@ const BenchmarkFieldCalls = styled(BenchmarkField)`
 `;
 
 const visualizationModes = [
-  "time per call (less is better)",
-  "logarithmic (greener is better)",
-  "calls per second (more is better)",
+  "time per call",
+  "logarithmic",
+  "calls per second",
+];
+
+const visualizationModesBetter = [
+  "🠔 better",
+  "🠔 better",
+  "better 🠖",
 ];
 
 export const Benchmark: FC = () => {
@@ -117,7 +123,6 @@ export const Benchmark: FC = () => {
   }
 
   const {fastest, slowest} = range;
-  const haveRange = fastest < slowest;
 
   return (
     <>
@@ -204,14 +209,18 @@ export const Benchmark: FC = () => {
               <TH colSpan={Object.values(results)[0].length}>
                 time per call (in microseconds)
               </TH>
-              {haveRange && <TH rowSpan={2}>
-                {visualizationModes[visualizationModeIdx]}
-                <br/>
-                <input type="range" min="0" max={visualizationModes.length - 1}
+              <TD rowSpan={2} style={{verticalAlign: "top"}}>
+                <input style={{transform: "rotate(90deg)", width: "3em", height: "3em"}}
+                  type="range" min="0" max={visualizationModes.length - 1}
                   value={visualizationModeIdx}
                   onChange={event => setVisualizationModeIdx(Number(event.target.value))}
                 />
-              </TH>}
+                <div style={{display: "inline-block", width: "19em", textAlign: "center"}}>
+                  <b>{visualizationModes[visualizationModeIdx]}</b>
+                  <br/>
+                  {visualizationModesBetter[visualizationModeIdx]}
+                </div>
+              </TD>
             </tr>
             <tr>
               <TH colSpan={Object.values(results)[0].length} style={{background: "#eee"}}>
@@ -229,20 +238,18 @@ export const Benchmark: FC = () => {
                       {typeof(time) === "number" ? (time * 1e6).toFixed(1) : time}
                     </BenchmarkField>
                   ))}
-                  {haveRange &&
-                    <TH rowSpan={2} style={{verticalAlign: "middle"}}>
-                      <svg viewBox="0 0 10 1" style={{width: "25em", height: "2.5em"}}>
-                        {times.map((time, blockNo) => typeof(time) === "number" && (
-                          <BlockVisualization
-                            key={blockNo}
-                            idx={visualizationModeIdx}
-                            blockNo={blockNo} nBlocks={times.length}
-                            time={time} fastest={fastest} slowest={slowest}
-                          />
-                        ))}
-                      </svg>
-                    </TH>
-                  }
+                  <TH rowSpan={2} style={{verticalAlign: "middle"}}>
+                    <svg viewBox="0 0 10 1" style={{width: "25em", height: "2.5em"}}>
+                      {times.map((time, blockNo) => typeof(time) === "number" && (
+                        <BlockVisualization
+                          key={blockNo}
+                          idx={visualizationModeIdx}
+                          blockNo={blockNo} nBlocks={times.length}
+                          time={time} fastest={fastest} slowest={slowest}
+                        />
+                      ))}
+                    </svg>
+                  </TH>
                 </tr>
                 <tr>
                   {times.map((time, j) => (
@@ -265,6 +272,9 @@ const BlockVisualization: FC<{
   blockNo: number, nBlocks: number,
   time: number, fastest: number, slowest: number,
 }> = ({idx, blockNo, nBlocks, time, slowest, fastest}) => {
+  if (fastest > slowest || idx === 1 && fastest >= slowest) {
+    return null;
+  }
   const y = (blockNo + 0.2) / nBlocks * 100 + "%";
   const height = 60 / nBlocks + "%";
   switch (idx) {
