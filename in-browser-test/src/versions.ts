@@ -22,6 +22,7 @@ import { fft_prepare as fft15d_prepare } from "fft-ts/dst/fft15d";
 import { fft_prepare as fft16_prepare } from "fft-ts/dst/fft16";
 import { fft_prepare as fft40_prepare } from "fft-ts/dst/fft40";
 import { fft_prepare as fft44_prepare } from "fft-ts/dst/fft44";
+import { fft_prepare as fft47_prepare } from "fft-ts/dst/fft47";
 import { fft_prepare as fft98_prepare } from "fft-ts/dst/fft98";
 import { fft_prepare as fft98a_prepare } from "fft-ts/dst/fft98a";
 import { fft_prepare as fft99_prepare } from "fft-ts/dst/fft99";
@@ -55,6 +56,7 @@ export const versions: Record<string, FFTPrep> = {
   fft16: fft16_prepare,
   fft40: fft40_prepare,
   fft44: fft44_prepare,
+  fft47: fft47_prepare,
   fft98: fft98_prepare,
   fft98a: fft98a_prepare,
   fft99: fft99_prepare,
