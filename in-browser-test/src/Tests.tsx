@@ -176,7 +176,7 @@ const ResultTable: FC<{results: Results}> = ({results}) => {
         {resultEntries.map(([name, result]) => (
           <Fragment key={name}>
             <tr>
-              <TH>{name}</TH>
+              <TH left>{name}</TH>
               {result instanceof Error ? (
                 <TestField colSpan={2 + resultEntries.length} error>
                   {result.message}
