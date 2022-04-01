@@ -1,15 +1,13 @@
 import { abs2, Complex, minus, timesScalar } from "complex/dst/Complex";
-import { ComplexArray, getComplex, makeComplexArray } from "complex/dst/ComplexArray";
-import { makeTestData } from "./test-utils";
 import { FC, Fragment, useState } from "react";
 import styled from "styled-components";
-import { SelectVersions, Table, TD, TDInput, TDOutput, TH } from "./utils";
-import { versions } from "./versions";
-
-const versionNames = Object.keys(versions);
+import { Table, TD, TDInput, TDOutput, TH } from "./utils";
+import { SelectVersions } from "./SelectVersions";
+import { TestableFFT, useVersions } from "./VersionContext";
+import makeTestData from "./makeTestData";
 
 type Result = {
-  out: ComplexArray,
+  out: Complex[],
   ifft_fft: number,
   vs: Record<string, number>,
 };
@@ -20,10 +18,12 @@ const dist = (
   n: number,
   f: (i: number) => Complex,
   g: (i: number) => Complex,
+  f_scale: number = 1,
+  g_scale: number = 1,
 ): number => {
   let sum = 0;
   for (let i = 0; i < n; i++) {
-    sum += abs2(minus(f(i), g(i)));
+    sum += abs2(minus(timesScalar(f(i), f_scale), timesScalar(g(i), g_scale)));
   }
   return Math.sqrt(sum / n);
 }
@@ -100,7 +100,9 @@ const Legend: FC<{}> = () => (
   </>
 );
 
-export const Tests: FC = () => {
+const Tests: FC = () => {
+  const versions = useVersions();
+  const versionNames = Object.keys(versions);
   const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
   const [log2n, setLog2n] = useState(11);
   const n = 1 << log2n;
@@ -109,26 +111,21 @@ export const Tests: FC = () => {
   async function runFFTs() {
     const data = makeTestData(n);
     let results: Results = {};
-    for (const [name, func] of Object.entries(versions)) {
-      if (!testVersions[name]) continue;
+    for (const [name, version] of Object.entries(versions)) {
+      if (version.status !== "resolved" || !testVersions[name]) continue;
       try {
-        const fft = func(n);
-        const out = makeComplexArray(n);
-        fft(data, out, 1);
+        const factory = version.value;
+        const fft: TestableFFT = factory(n);
+        data.map((v, i) => fft.setInput(i, v));
+        fft.run(1);
         // // just to see how exceptions and diffs are handled:
-        // if (name==="fft06") setComplex(out, 0, timesScalar(getComplex(out, 0), 1.0001));
+        // if (name==="fft06") setComplex(out, 0, timesScalar(out[0], 1.0001));
         // if (name==="fft07") throw "fooooo";
-        const invOut = makeComplexArray(n);
-        fft(out, invOut, -1);
-        const scale = 1/n;
-        results[name] = {
-          out,
-          ifft_fft: dist(n,
-            i => getComplex(data, i),
-            i => timesScalar(getComplex(invOut, i), scale),
-          ),
-          vs: {},
-        };
+        const out: Complex[] = new Array(n).fill(undefined);
+        out.forEach((_, i) => fft.setInput(i, out[i] = fft.getOutput(i)));
+        fft.run(-1);
+        const ifft_fft = dist(n, i => data[i], i => fft.getOutput(i), 1, 1/n);
+        results[name] = { out, ifft_fft, vs: {}};
       } catch (e) {
         results[name] = new Error(`Calculation failed: ${e}`);
       }
@@ -145,10 +142,7 @@ export const Tests: FC = () => {
           continue;
         const out2 = result2.out;
         const scale = Math.sqrt(1/n);
-        const distance = dist(n,
-          i => timesScalar(getComplex(out1, i), scale),
-          i => timesScalar(getComplex(out2, i), scale),
-        );
+        const distance = dist(n, i => out1[i], i => out2[i], scale, scale);
         result1.vs[name2] = distance;
         result2.vs[name1] = distance;
       }
@@ -246,3 +240,5 @@ export const Tests: FC = () => {
     </>
   );
 };
+
+export default Tests;

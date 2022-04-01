@@ -1,5 +1,5 @@
-import { abs2, Complex, minus, timesScalar, zero } from "complex/dst/Complex";
-import { ComplexArray, FFT, getComplex, getDist, Instance, randomComplex, setComplex } from "./fft-instance-utils";
+import { zero } from "complex/dst/Complex";
+import { ComplexArray, FFT, getComplex, getDist, Instance, randomComplex, setComplex } from "../../ts/fft-instance-utils";
 import { versions as allVersions } from "./info";
 
 

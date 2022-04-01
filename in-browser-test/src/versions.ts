@@ -1,3 +1,10 @@
+import { Complex } from "complex/dst/Complex";
+import { ComplexArray, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray";
+import { FFTPrep, FFTRun } from "fft-ts/dst/fft_types";
+
+import mapObject from "./mapObject";
+import { TestableFFT, TestableFFTFactory } from "./VersionContext";
+
 import { fft_prepare as fft01 } from "fft-ts/dst/fft01";
 import { fft_prepare as fft02 } from "fft-ts/dst/fft02";
 import { fft_prepare as fft03 } from "fft-ts/dst/fft03";
@@ -29,7 +36,6 @@ import { fft_prepare as fft99 } from "fft-ts/dst/fft99";
 import { fft_prepare as fft99a } from "fft-ts/dst/fft99a";
 import { fft_prepare as fft99b } from "fft-ts/dst/fft99b";
 import { fft_prepare as fft99c } from "fft-ts/dst/fft99c";
-import { FFTPrep } from "fft-ts/dst/fft_types";
 
 export const versions: Record<string, FFTPrep> = {
   fft01,
@@ -63,5 +69,32 @@ export const versions: Record<string, FFTPrep> = {
   fft99a,
   fft99b,
   fft99c,
-  // TODO versions from C++
 };
+
+class TestableFFTFromTS implements TestableFFT {
+  private input: ComplexArray;
+  private output: ComplexArray;
+  private fftRun: FFTRun;
+
+  constructor(
+    fft_prepare: FFTPrep,
+    public readonly size: number,
+  ) {
+    this.input = makeComplexArray(size);
+    this.output = makeComplexArray(size);
+    this.fftRun = fft_prepare(size);
+  }
+
+  setInput(i: number, value: Complex): void {
+    setComplex(this.input, i, value);
+  }
+  run(direction: number = 1): void {
+    this.fftRun(this.input, this.output, direction);
+  }
+  getOutput(i: number): Complex {
+    return getComplex(this.output, i);
+  }
+}
+
+export const testableVersions: Record<string, TestableFFTFactory> =
+  mapObject(versions, fft_prep => n => new TestableFFTFromTS(fft_prep, n));

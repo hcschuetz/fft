@@ -2,7 +2,9 @@
   "name": "fft-cpp",
   "version": "1.0.0",
   "scripts": {
-    "build": "node scripts/compile.mjs",
+    "build-c++": "node scripts/compile.mjs",
+    "build-ts": "tsc -p .",
+    "build": "npm run build-ts && npm run build-c++",
     "test": "jest",
     "perf": "node scripts/performance.mjs",
     "clean": "node scripts/clean.mjs"

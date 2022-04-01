@@ -1,5 +1,5 @@
 import { performance } from "perf_hooks";
-import { ComplexArray, FFT, randomComplex, setComplex } from "./fft-instance-utils";
+import { ComplexArray, FFT, randomComplex, setComplex } from "../../ts/fft-instance-utils";
 
 async function sleep(milliseconds: number) {
   await new Promise(resolve => setTimeout(resolve, milliseconds));

@@ -1,55 +1,61 @@
-import { ComplexArray, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray";
+import { ComplexArray, FFT, getComplex, Instance, setComplex } from "fft-cpp/dst/fft-instance-utils";
+import { Complex } from "complex/dst/Complex";
+import { TestableFFT, TestableFFTFactory } from "./VersionContext";
+import mapObject from "./mapObject";
 
-const modules = `
-  fft01 fft02
-  fft44 fft47 fft47pointers fft48
-  fft99b fft99c
-`.trim().split(/\s+/);
+import fft01 from "fft-cpp/dst-js-web/fft01";
+import fft02 from "fft-cpp/dst-js-web/fft02";
+import fft44 from "fft-cpp/dst-js-web/fft44";
+import fft47 from "fft-cpp/dst-js-web/fft47";
+import fft47pointers from "fft-cpp/dst-js-web/fft47pointers";
+import fft48 from "fft-cpp/dst-js-web/fft48";
+import fft99b from "fft-cpp/dst-js-web/fft99b";
+import fft99c from "fft-cpp/dst-js-web/fft99c";
 
-export const cppVersions = () => modules.map(name => {
-  const name_cpp = name + "_cpp";
-  return {
-    name: name_cpp,
-    func: async (size: number, direction: number = 1) => {
-      console.log(name, "A")
-      const module = await import(`fft-cpp/dst-js-web/${name}`);
-      console.log(name, "B")
-      const instance = await (module.default)();
-      const input = instance._malloc(size * 16);
-      const output = instance._malloc(size * 16);
-      const fft = instance._prepare_fft(size);
-      // TODO Use finalization (FinalizationRegistry) to call
-      //   instance._free(input)
-      //   instance._free(output)
-      //   instance._delete_fft(fft)
-      // to avoid a memory leak?
-      // But probably the memory can be garbage-collected together with the
-      // instance anyway.
-      // (And we have no need to free input/output/fft before the instance.)
-    
-      const out = makeComplexArray(size);
 
-      return (data: ComplexArray) => {
-        // TODO avoid data reshuffling (in particular for benchmarks)
-        for (let i = 0; i < size; i++) {
-          const {re, im} = getComplex(data, i);
-          const addr = input + 16 * i;
-          instance.setValue(addr    , re, "double");
-          instance.setValue(addr + 8, im, "double");
-        }
+export const factories: Record<string, () => Promise<Instance>> = {
+  fft01,
+  fft02,
+  fft44,
+  fft47,
+  fft47pointers,
+  fft48,
+  fft99b,
+  fft99c,
+};
 
-        instance._run_fft(fft, input, output, direction);
+class TestableFFTFromInstance implements TestableFFT {
+  private input: ComplexArray;
+  private output: ComplexArray;
+  private fft: FFT;
 
-        for (let i = 0; i < size; i++) {
-          const addr = output + 16 * i;
-          setComplex(out, i, {
-            re: instance.getValue(addr    , "double"),
-            im: instance.getValue(addr + 8, "double"),
-          });
-        }
-
-        return out;
-      };
-    },
+  constructor(
+    instance: Instance,
+    public readonly size: number,
+  ) {
+    this.input = new ComplexArray(instance, size);
+    this.output = new ComplexArray(instance, size);
+    this.fft = new FFT(instance, size);
   }
-});
+
+  setInput(i: number, value: Complex): void {
+    setComplex(this.input, i, value);
+  }
+  run(direction: number = 1): void {
+    this.fft.run(this.input, this.output, direction);
+  }
+  getOutput(i: number): Complex {
+    return getComplex(this.output, i);
+  }
+}
+
+export const testableCppVersions: Record<string, Promise<TestableFFTFactory>> =
+  mapObject(factories, async (factory, name) => {
+    // // Just to see if the handling of pending and rejected promises works:
+    // if (name === "fft02") throw new Error("FOO BAR");
+    // if (name === "fft44") await new Promise(resolve => setTimeout(resolve, 5000));
+    const instance: Instance = await factory();
+    const testableFFTFactory = (size: number): TestableFFT =>
+      new TestableFFTFromInstance(instance, size);
+    return testableFFTFactory;
+  });

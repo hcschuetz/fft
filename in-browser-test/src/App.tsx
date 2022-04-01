@@ -1,46 +1,24 @@
-import { FC } from 'react';
-import styled from 'styled-components';
+import prefixKeys from "./prefixKeys";
+import mapObject from "./mapObject";
+import asPromise from "./asPromise";
 
-import { Tests } from './testing';
-import { Benchmark } from './benchmarking';
+import { testableVersions } from "./versions";
+import { testableCppVersions } from "./cppVersions";
+import { PromisedVersions, VersionProvider } from './VersionContext';
+
+import Tests from './Tests';
+import Benchmark from './Benchmark';
+import UserAgent from './UserAgent';
 
 
-const DeEmphasized = styled.span`
-  color: #888;
-`;
-const Emphasized = styled.span`
-  color: #000;
-  font-weight: bolder;
-  background: #ddd;
-  padding-left: 3px;
-  padding-right: 3px;
-`;
-
-// Guess which of the browser names in the user-agent string actually represents
-// the current browser and emphasize it.
-const UserAgent: FC = () => {
-  let userAgent = navigator.userAgent;
-  for (const re of [
-    // The order of regular expressions does matter here!
-    // TODO Test on all kinds of browsers.
-    /^(.*\s)?(OPR\/\S+)(.*)$/,
-    /^(.*\s)?(Edg\/\S+)(.*)$/,
-    /^(.*\s)?(Chrome\/\S+)(.*)$/,
-    /^(.*\s)?(Safari\/\S+)(.*)$/,
-    /^(.*\s)?(Firefox\/\S+)(.*)$/,
-    /^(.*\s)?(MSIE\s+[^ ;)]*)(.*)$/,
-  ]) {
-    const m = re.exec(userAgent as string);
-    if (m) {
-      return (<DeEmphasized>{m[1]}<Emphasized>{m[2]}</Emphasized>{m[3]}</DeEmphasized>);
-    }
-  }
-  return (<span>userAgent</span>);
+const versions: PromisedVersions = {
+  ...prefixKeys("[TS] ", mapObject(testableVersions, asPromise)),
+  ...prefixKeys("[C++] ", testableCppVersions)
 };
 
 function App() {
   return (
-    <>
+    <VersionProvider versions={versions}>
       <h1>Comparing FFT Implementation Variants</h1>
       <p>
         See <a href="https://github.com/hcschuetz/fft/">
@@ -53,11 +31,11 @@ function App() {
       <Benchmark/>
       <h2>User Agent</h2>
       <p>
-        The test and benchmark results above are from this browser:
+        This page is currently being displayed by the following browser:
         <br/>
         <code><UserAgent/></code>
       </p>
-    </>
+    </VersionProvider>
   );
 }
 

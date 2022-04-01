@@ -1,5 +1,5 @@
 /src/selectImpl.h++
-/dst-*
+/dst*
 /test/bin
 /node_modules/
 *.stackdump

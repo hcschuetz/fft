@@ -1,9 +1,9 @@
-import { makeTestData } from "./test-utils";
 import { FC, Fragment, useRef, useState } from "react";
 import styled from "styled-components";
-import { SelectVersions, Table, TD, TDInput, TDOutput, TH } from "./utils";
-import { versions } from "./versions";
-import { makeComplexArray } from "complex/dst/ComplexArray";
+import { Table, TD, TDInput, TDOutput, TH } from "./utils";
+import { SelectVersions } from "./SelectVersions";
+import makeTestData from "./makeTestData";
+import { TestableFFT, useVersions } from "./VersionContext";
 
 const sleep = (ms: number): Promise<undefined> =>
   new Promise(resolve => setTimeout(resolve, ms));
@@ -34,7 +34,8 @@ const visualizationModesBetter = [
   "🠔 better",
 ];
 
-export const Benchmark: FC = () => {
+const Benchmark: FC = () => {
+  const versions = useVersions();
   const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
 
   const [log2n, setLog2n] = useState(11);
@@ -77,18 +78,19 @@ export const Benchmark: FC = () => {
       log("==== start");
       resetRange();
       const data = makeTestData(n);
-      const out = makeComplexArray(n);
       const results: Record<string, benchmarkState[]> =
         Object.fromEntries(
           Object.keys(versions)
           .filter((name) => testVersions[name])
           .map((name) => [name, new Array(nBlocks).fill("") as benchmarkState[]])
         );
-      for (const [name, fft_prepare] of Object.entries(versions)) {
-        if (!testVersions[name]) continue;
+      for (const [name, version] of Object.entries(versions)) {
+        if (version.status !== "resolved" || !testVersions[name]) continue;
         log("testing version", name);
         const times = results[name];
-        const fft = fft_prepare(n);
+        const factory = version.value;
+        const fft: TestableFFT = factory(n);
+        data.forEach((v, i) => fft.setInput(i, v));
         log("got func")
         for (let i = 0; i < nBlocks; i++) {
           checkStop("A");
@@ -106,7 +108,7 @@ export const Benchmark: FC = () => {
           setResults({...results});
           await sleep(0);
           for (let j = 0; j < blockSize; j++) {
-            fft(data, out, 1);
+            fft.run(1);
           }
           checkStop("C");
           const time = (performance.now() - start) * 1e-3 / blockSize;
@@ -232,7 +234,7 @@ export const Benchmark: FC = () => {
             {Object.entries(results).map(([name, times]) => (
               <Fragment key={name}>
                 <tr>
-                  <TH rowSpan={2}>{name}</TH>
+                  <TH rowSpan={2} left>{name}</TH>
                   {times.map((time, j) => (
                     <BenchmarkField key={j}>
                       {typeof(time) === "number" ? (time * 1e6).toFixed(1) : time}
@@ -279,9 +281,9 @@ const BlockVisualization: FC<{
   const height = 60 / nBlocks + "%";
   switch (idx) {
     case 0: return (
-      <rect fill="darkred"
+      <rect fill="lightgreen"
         y={y} height={height}
-        x="0%" width={time / slowest * 100 + "%"}
+        x="0%" width={fastest / time * 100 + "%"}
       />
     );
     case 1:
@@ -302,11 +304,13 @@ const BlockVisualization: FC<{
         </>
       );
     case 2: return (
-      <rect fill="lightgreen"
+      <rect fill="darkred"
         y={y} height={height}
-        x="0%" width={fastest / time * 100 + "%"}
+        x="0%" width={time / slowest * 100 + "%"}
       />
     );
     default: return null;
   }
 }
+
+export default Benchmark;

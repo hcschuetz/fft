@@ -103,7 +103,8 @@ async function compileNode({version, wasm, outDir}) {
 
 async function compileWebJS({version, outDir}) {
   await emitSelectImpl({version});
-  const outFile = `${outDir}/${version}.js`;
+  const outFileBase = `${outDir}/${version}`;
+  const outFile = `${outFileBase}.js`;
   await spawnCommand(emcc, [
     "-o", outFile,
     "-std=c++17",
@@ -125,6 +126,11 @@ ${generatedContent}
 
 export default Module;
 `);
+  await writeFile(`${outFileBase}.d.ts`, `
+import { Instance } from "../dst/fft-instance-utils";
+declare function Module(): Promise<Instance>;
+export default Module;  
+`)
 }
 
 async function compileWebWASM({version, outDir}) {
