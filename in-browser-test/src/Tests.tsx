@@ -3,8 +3,36 @@ import { FC, Fragment, useState } from "react";
 import styled from "styled-components";
 import { Table, TD, TDInput, TDOutput, TH } from "./utils";
 import { SelectVersions } from "./SelectVersions";
-import { TestableFFT, useVersions } from "./VersionContext";
+import { TestableFFT, useVersions, VersionStates } from "./VersionContext";
 import makeTestData from "./makeTestData";
+
+const Parameters: FC<{
+  log2n: number,
+  setLog2n(val: number): void,
+  n: number
+}> = ({log2n, setLog2n, n}) => (
+  <table style={{
+    margin: "1em 0",
+    borderCollapse: "collapse",
+    border: "1em 0",
+  }}>
+    <tbody>
+      <tr>
+        <td>
+          <label htmlFor="nInput">data size:</label>
+        </td>
+        <TDInput>
+          <input id="nInput" type="range"
+            min={0} max={16}
+            value={log2n}
+            onChange={event => setLog2n(Number(event.target.value))}
+          />
+        </TDInput>
+        <TDOutput>{n}</TDOutput>
+      </tr>
+    </tbody>
+  </table>
+);
 
 type Result = {
   out: Complex[],
@@ -26,6 +54,54 @@ const dist = (
     sum += abs2(minus(timesScalar(f(i), f_scale), timesScalar(g(i), g_scale)));
   }
   return Math.sqrt(sum / n);
+}
+
+async function runFFTs(
+  versions: VersionStates,
+  testVersions: Record<string, boolean>,
+  n: number,
+  setResults: (results: Results) => void,
+) {
+  const data = makeTestData(n);
+  let results: Results = {};
+  for (const [name, version] of Object.entries(versions)) {
+    if (version.status !== "resolved" || !testVersions[name]) continue;
+    try {
+      const factory = version.value;
+      const fft: TestableFFT = factory(n);
+      data.map((v, i) => fft.setInput(i, v));
+      fft.run(1);
+      // // just to see how exceptions and diffs are handled:
+      // if (name==="fft06") setComplex(out, 0, timesScalar(out[0], 1.0001));
+      // if (name==="fft07") throw "fooooo";
+      const out: Complex[] = new Array(n).fill(undefined);
+      out.forEach((_, i) => fft.setInput(i, out[i] = fft.getOutput(i)));
+      fft.run(-1);
+      const ifft_fft = dist(n, i => data[i], i => fft.getOutput(i), 1, 1/n);
+      results[name] = { out, ifft_fft, vs: {}};
+    } catch (e) {
+      results[name] = new Error(`Calculation failed: ${e}`);
+    }
+  }
+  const versionNames = Object.keys(versions);
+  for (const name1 of versionNames) {
+    const result1 = results[name1];
+    if (!result1 || result1 instanceof Error)
+      continue;
+    const out1 = result1.out;
+    for (const name2 of versionNames) {
+      if (name2 >= name1) continue;
+      const result2 = results[name2];
+      if (!result2 || result2 instanceof Error)
+        continue;
+      const out2 = result2.out;
+      const scale = Math.sqrt(1/n);
+      const distance = dist(n, i => out1[i], i => out2[i], scale, scale);
+      result1.vs[name2] = distance;
+      result2.vs[name1] = distance;
+    }
+  }
+  setResults(results);
 }
 
 // empty-width field, making the left and right border appear as one fat border
@@ -78,6 +154,57 @@ const DiffField: FC<DiffFieldProps> = ({children: diff, width, ...moreProps}) =>
   </TestField>
 );
 
+const ResultTable: FC<{results: Results}> = ({results}) => {
+  const resultEntries = Object.entries(results);
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <TH/>
+          <SeparatorField/>
+          <TH>ifft∘fft</TH>
+          <SeparatorField/>
+          {Object.keys(results).map(name2 => (
+            <TH key={name2}>vs. {name2}</TH>
+          ))}
+        </tr>
+        <tr>
+          <SeparatorRowField colSpan={3 + resultEntries.length}/>
+        </tr>
+      </thead>
+      <tbody>
+        {resultEntries.map(([name, result]) => (
+          <Fragment key={name}>
+            <tr>
+              <TH>{name}</TH>
+              {result instanceof Error ? (
+                <TestField colSpan={2 + resultEntries.length} error>
+                  {result.message}
+                </TestField>
+              ) : (
+                <>
+                  <SeparatorField/>
+                  <DiffField>{result.ifft_fft}</DiffField>
+                  <SeparatorField/>
+                  {resultEntries.map(([name2, result2]) => (
+                    <Fragment key={name2}>
+                      {
+                        name === name2           ? <TestField irrelevant/> :
+                        result2 instanceof Error ? <TestField error/> :
+                        <DiffField>{result.vs[name2]}</DiffField>
+                      }
+                    </Fragment>
+                  ))}
+                </>
+              )}
+            </tr>
+          </Fragment>
+        ))}
+      </tbody>
+    </Table>
+  );
+};
+
 const Legend: FC<{}> = () => (
   <>
     <p>Legend:</p>
@@ -102,86 +229,20 @@ const Legend: FC<{}> = () => (
 
 const Tests: FC = () => {
   const versions = useVersions();
-  const versionNames = Object.keys(versions);
   const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
   const [log2n, setLog2n] = useState(11);
   const n = 1 << log2n;
   const [results, setResults] = useState<Results>({});
-
-  async function runFFTs() {
-    const data = makeTestData(n);
-    let results: Results = {};
-    for (const [name, version] of Object.entries(versions)) {
-      if (version.status !== "resolved" || !testVersions[name]) continue;
-      try {
-        const factory = version.value;
-        const fft: TestableFFT = factory(n);
-        data.map((v, i) => fft.setInput(i, v));
-        fft.run(1);
-        // // just to see how exceptions and diffs are handled:
-        // if (name==="fft06") setComplex(out, 0, timesScalar(out[0], 1.0001));
-        // if (name==="fft07") throw "fooooo";
-        const out: Complex[] = new Array(n).fill(undefined);
-        out.forEach((_, i) => fft.setInput(i, out[i] = fft.getOutput(i)));
-        fft.run(-1);
-        const ifft_fft = dist(n, i => data[i], i => fft.getOutput(i), 1, 1/n);
-        results[name] = { out, ifft_fft, vs: {}};
-      } catch (e) {
-        results[name] = new Error(`Calculation failed: ${e}`);
-      }
-    }
-    for (const name1 of versionNames) {
-      const result1 = results[name1];
-      if (!result1 || result1 instanceof Error)
-        continue;
-      const out1 = result1.out;
-      for (const name2 of versionNames) {
-        if (name2 >= name1) continue;
-        const result2 = results[name2];
-        if (!result2 || result2 instanceof Error)
-          continue;
-        const out2 = result2.out;
-        const scale = Math.sqrt(1/n);
-        const distance = dist(n, i => out1[i], i => out2[i], scale, scale);
-        result1.vs[name2] = distance;
-        result2.vs[name1] = distance;
-      }
-    }
-    setResults(results);
-  }
-
-  const resultEntries = Object.entries(results);
-
   return (
     <>
       <p>Select the versions to test:</p>
       <SelectVersions selected={testVersions} setSelected={setTestVersions}/>
       <p>Choose parameter:</p>
-      <table style={{
-        margin: "1em 0",
-        borderCollapse: "collapse",
-        border: "1em 0",
-      }}>
-        <tbody>
-          <tr>
-            <td>
-              <label htmlFor="nInput">data size:</label>
-            </td>
-            <TDInput>
-              <input id="nInput" type="range"
-                min={0} max={16}
-                value={log2n}
-                onChange={event => setLog2n(Number(event.target.value))}
-              />
-            </TDInput>
-            <TDOutput>{n}</TDOutput>
-          </tr>
-        </tbody>
-      </table>
+      <Parameters {...{log2n, setLog2n, n}}/>
       <p>
         Execute: {}
         <button
-          onClick={runFFTs}
+          onClick={() => runFFTs(versions, testVersions, n, setResults)}
           disabled={!Object.values(testVersions).some(value => value)}
         >
           Run Tests
@@ -189,51 +250,7 @@ const Tests: FC = () => {
       </p>
       {Object.keys(results).length > 0 && (
         <>
-          <Table>
-            <thead>
-              <tr>
-                <TH/>
-                <SeparatorField/>
-                <TH>ifft∘fft</TH>
-                <SeparatorField/>
-                {Object.keys(results).map(name2 => (
-                  <TH key={name2}>vs. {name2}</TH>
-                ))}
-              </tr>
-              <tr>
-                <SeparatorRowField colSpan={3 + resultEntries.length}/>
-              </tr>
-            </thead>
-            <tbody>
-              {resultEntries.map(([name, result]) => (
-                <Fragment key={name}>
-                  <tr>
-                    <TH>{name}</TH>
-                    {result instanceof Error ? (
-                      <TestField colSpan={2 + resultEntries.length} error>
-                        {result.message}
-                      </TestField>
-                    ) : (
-                      <>
-                        <SeparatorField/>
-                        <DiffField>{result.ifft_fft}</DiffField>
-                        <SeparatorField/>
-                        {resultEntries.map(([name2, result2]) => (
-                          <Fragment key={name2}>
-                            {
-                              name === name2           ? <TestField irrelevant/> :
-                              result2 instanceof Error ? <TestField error/> :
-                              <DiffField>{result.vs[name2]}</DiffField>
-                            }
-                          </Fragment>
-                        ))}
-                      </>
-                    )}
-                  </tr>
-                </Fragment>
-              ))}
-            </tbody>
-          </Table>
+          <ResultTable {...{results}}/>
           <Legend/>
         </>
       )}

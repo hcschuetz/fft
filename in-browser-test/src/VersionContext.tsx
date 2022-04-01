@@ -22,13 +22,13 @@ export type TestableFFT = {
 export type TestableFFTFactory = (size: number) => TestableFFT;
 export type PromisedVersions = Record<string, Promise<TestableFFTFactory>>;
 
-type PromiseState<T,> =
+export type PromiseState<T,> =
   { status: "pending" }
 | { status: "resolved", value: T }
 | { status: "rejected", reason: any };
 
-type VersionState = PromiseState<TestableFFTFactory>;
-type VersionStates = Record<string, VersionState>;
+export type VersionState = PromiseState<TestableFFTFactory>;
+export type VersionStates = Record<string, VersionState>;
 
 const VersionContext = createContext<VersionStates>({});
 
