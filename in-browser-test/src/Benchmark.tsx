@@ -261,7 +261,7 @@ const Benchmark: FC = () => {
     init: 4, transform: x => blockSizes[x],
   });
   const [pause, pauseRow] = useSlider({
-    id: "pauseInput", label: "pause before each block:",
+    id: "pauseInput", label: "pause before each block (seconds):",
     min: 0, max: 60,
     init: 0, transform: x => x,
   });
