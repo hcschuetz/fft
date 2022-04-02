@@ -1,114 +1,14 @@
 import { FC, Fragment, MutableRefObject, useRef, useState } from "react";
 import styled from "styled-components";
-import { Table, TD, TDInput, TDOutput, TH } from "./utils";
+import { Table, TD, TH } from "./utils";
 import { SelectVersions } from "./SelectVersions";
 import makeTestData from "./makeTestData";
 import { TestableFFT, useVersions, VersionStates } from "./VersionContext";
-
-const sleep = (ms: number): Promise<undefined> =>
-  new Promise(resolve => setTimeout(resolve, ms));
+import sleep from "./sleep";
+import ParameterTable from "./ParameterTable";
+import useSlider from "./useSlider";
 
 const blockSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
-
-type NArgs = {
-  log2n: number,
-  setLog2n(value: number): void,
-  n: number,
-};
-const ParameterRowN: FC<NArgs> = ({log2n, setLog2n, n}) => (
-  <tr>
-    <td>
-      <label htmlFor="nInput">data size:</label>
-    </td>
-    <TDInput>
-      <input id="nInput" type="range"
-        min={0} max={16}
-        value={log2n}
-        onChange={event => setLog2n(Number(event.target.value))}
-      />
-    </TDInput>
-    <TDOutput>{n}</TDOutput>
-  </tr>
-);
-
-type NBlocksArgs = {
-  nBlocks: number,
-  setNBlocks(value: number): void,
-};
-const ParameterRowNBlocks: FC<NBlocksArgs> = ({nBlocks, setNBlocks}) => (
-  <tr>
-    <td>
-      <label htmlFor="nBlocksInput">number of blocks:</label>
-    </td>
-    <TDInput>
-      <input id="nBlocksInput" type="range"
-        min={1} max={20}
-        value={nBlocks}
-        onChange={event => setNBlocks(Number(event.target.value))}
-      />
-    </TDInput>
-    <TDOutput>{nBlocks}</TDOutput>
-  </tr>
-);
-
-type BlockSizeArgs = {
-  blockSizeIdx: number,
-  setBlockSizeIdx(value: number): void,
-  blockSize: number,
-};
-const ParameterRowBlockSize: FC<BlockSizeArgs> = ({blockSizeIdx, setBlockSizeIdx, blockSize}) => (
-  <tr>
-    <td>
-      <label htmlFor="blockSizeInput">calls per block:</label>
-    </td>
-    <TDInput>
-      <input id="blockSizeInput" type="range"
-        min={0} max={blockSizes.length - 1}
-        value={blockSizeIdx}
-        onChange={event => setBlockSizeIdx(Number(event.target.value))}
-      />
-    </TDInput>
-    <TDOutput>{blockSize}</TDOutput>
-  </tr>
-);
-type PauseArgs = {
-  pause: number,
-  setPause(value: number): void,
-};
-const ParameterRowPause: FC<PauseArgs> = ({pause, setPause}) => (
-  <tr>
-    <td>
-      <label htmlFor="pauseInput">
-        pause before block:
-      </label>
-    </td>
-    <TDInput>
-      <input id="pauseInput" type="range"
-        min={0} max={60}
-        value={pause}
-        onChange={event => setPause(Number(event.target.value))}
-      />
-    </TDInput>
-    <TDOutput>{pause} s</TDOutput>
-  </tr>
-);
-
-const Parameters: FC<NArgs & NBlocksArgs & BlockSizeArgs & PauseArgs> = props => {
-  return (
-    <table style={{
-      margin: "1em 0",
-      borderCollapse: "collapse",
-      border: "1em 0",
-    }}>
-      <tbody>
-        <ParameterRowN {...props}/>
-        <ParameterRowNBlocks {...props}/>
-        <ParameterRowBlockSize {...props}/>
-        <ParameterRowPause {...props}/>
-      </tbody>
-    </table>
-  );
-};
 
 type benchmarkState = number | "" | "pause" | "run";
 
@@ -345,15 +245,27 @@ const Benchmark: FC = () => {
   const versions = useVersions();
   const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
 
-  const [log2n, setLog2n] = useState(11);
-  const n = 1 << log2n;
+  const [n, nRow] = useSlider({
+    id: "nInput", label: "data size:",
+    min: 0, max: 16,
+    init: 11, transform: x => 1 << x,
+  });
+  const [nBlocks, nBlocksRow] = useSlider({
+    id: "nBlocksInput", label: "number of blocks:",
+    min: 1, max: 20,
+    init: 2, transform: x => x,
+  });
+  const [blockSize, blockSizeRow] = useSlider({
+    id: "blockSizeInput", label: "calls per block:",
+    min: 0, max: blockSizes.length - 1,
+    init: 4, transform: x => blockSizes[x],
+  });
+  const [pause, pauseRow] = useSlider({
+    id: "pauseInput", label: "pause before each block:",
+    min: 0, max: 60,
+    init: 0, transform: x => x,
+  });
 
-  const [nBlocks, setNBlocks] = useState(2);
-
-  const [blockSizeIdx, setBlockSizeIdx] = useState(4);
-  const blockSize = blockSizes[blockSizeIdx];
-
-  const [pause, setPause] = useState(0);
   const [results, setResults] = useState<Results>({});
 
   const callCount = useRef(0);
@@ -363,12 +275,12 @@ const Benchmark: FC = () => {
       <p>Select the versions to benchmark:</p>
       <SelectVersions selected={testVersions} setSelected={setTestVersions}/>
       <p>Choose parameters:</p>
-      <Parameters {...{
-        log2n, setLog2n, n,
-        nBlocks, setNBlocks,
-        blockSizeIdx, setBlockSizeIdx, blockSize,
-        pause, setPause,        
-      }}/>
+      <ParameterTable>
+        {nRow}
+        {blockSizeRow}
+        {pauseRow}
+        {nBlocksRow}
+      </ParameterTable>
       <p>
         Execute: {}
         <button

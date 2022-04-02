@@ -4,15 +4,6 @@ export const Table = styled.table`
   border-collapse: collapse;
 `;
 
-export const TDInput = styled.td`
-  padding: 0 1ex;
-`;
-
-export const TDOutput = styled.td`
-  width: 3em;
-  text-align: right;
-`;
-
 export const TD = styled.td`
   border: 1px solid black;
   padding: 3px;

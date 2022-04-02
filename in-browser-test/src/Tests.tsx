@@ -1,38 +1,12 @@
 import { abs2, Complex, minus, timesScalar } from "complex/dst/Complex";
 import { FC, Fragment, useState } from "react";
 import styled from "styled-components";
-import { Table, TD, TDInput, TDOutput, TH } from "./utils";
+import { Table, TD, TH } from "./utils";
 import { SelectVersions } from "./SelectVersions";
 import { TestableFFT, useVersions, VersionStates } from "./VersionContext";
 import makeTestData from "./makeTestData";
-
-const Parameters: FC<{
-  log2n: number,
-  setLog2n(val: number): void,
-  n: number
-}> = ({log2n, setLog2n, n}) => (
-  <table style={{
-    margin: "1em 0",
-    borderCollapse: "collapse",
-    border: "1em 0",
-  }}>
-    <tbody>
-      <tr>
-        <td>
-          <label htmlFor="nInput">data size:</label>
-        </td>
-        <TDInput>
-          <input id="nInput" type="range"
-            min={0} max={16}
-            value={log2n}
-            onChange={event => setLog2n(Number(event.target.value))}
-          />
-        </TDInput>
-        <TDOutput>{n}</TDOutput>
-      </tr>
-    </tbody>
-  </table>
-);
+import ParameterTable from "./ParameterTable";
+import useSlider from "./useSlider";
 
 type Result = {
   out: Complex[],
@@ -230,15 +204,20 @@ const Legend: FC<{}> = () => (
 const Tests: FC = () => {
   const versions = useVersions();
   const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
-  const [log2n, setLog2n] = useState(11);
-  const n = 1 << log2n;
+  const [n, nRow] = useSlider({
+    id: "testSizeInput", label: "data size:",
+    min: 0, max: 16,
+    init: 11, transform: x => 1 << x,
+  });
   const [results, setResults] = useState<Results>({});
   return (
     <>
       <p>Select the versions to test:</p>
       <SelectVersions selected={testVersions} setSelected={setTestVersions}/>
       <p>Choose parameter:</p>
-      <Parameters {...{log2n, setLog2n, n}}/>
+      <ParameterTable>
+        {nRow}
+      </ParameterTable>
       <p>
         Execute: {}
         <button
