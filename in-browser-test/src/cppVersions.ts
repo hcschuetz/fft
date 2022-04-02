@@ -3,14 +3,14 @@ import { Complex } from "complex/dst/Complex";
 import { TestableFFT, TestableFFTFactory } from "./VersionContext";
 import mapObject from "./mapObject";
 
-import fft01 from "fft-cpp/dst-js-web/fft01";
-import fft02 from "fft-cpp/dst-js-web/fft02";
-import fft44 from "fft-cpp/dst-js-web/fft44";
-import fft47 from "fft-cpp/dst-js-web/fft47";
-import fft47pointers from "fft-cpp/dst-js-web/fft47pointers";
-import fft48 from "fft-cpp/dst-js-web/fft48";
-import fft99b from "fft-cpp/dst-js-web/fft99b";
-import fft99c from "fft-cpp/dst-js-web/fft99c";
+import fft01 from "fft-cpp/dst-js/fft01";
+import fft02 from "fft-cpp/dst-js/fft02";
+import fft44 from "fft-cpp/dst-js/fft44";
+import fft47 from "fft-cpp/dst-js/fft47";
+import fft47pointers from "fft-cpp/dst-js/fft47pointers";
+import fft48 from "fft-cpp/dst-js/fft48";
+import fft99b from "fft-cpp/dst-js/fft99b";
+import fft99c from "fft-cpp/dst-js/fft99c";
 
 
 export const factories: Record<string, () => Promise<Instance>> = {
