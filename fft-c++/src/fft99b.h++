@@ -1,5 +1,5 @@
-#ifndef FTT99B_HPP
-#define FTT99B_HPP 1
+#ifndef FFT99B_HPP
+#define FFT99B_HPP 1
 
 #include "complex.h++"
 #include "fft.h++"

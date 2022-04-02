@@ -1,5 +1,5 @@
-#ifndef FTT47POINTERS_HPP
-#define FTT47POINTERS_HPP 1
+#ifndef FFT47POINTERS_HPP
+#define FFT47POINTERS_HPP 1
 
 #include "complex.h++"
 #include "fft.h++"
