@@ -37,8 +37,10 @@ Comma-separated components of TECH should be taken from these values:
 
 const { VERSIONS, TECH } = process.env;
 
-const allVersions = "fft01,fft02,fft44,fft47,fft47pointers,fft48,fft99b,fft99c";
-const versions = (VERSIONS ?? allVersions).split(",");
+const versions = VERSIONS ? VERSIONS.split(",") :
+  (await readdir("src"))
+  .filter(name => name.match(/fft.+\.c\+\+/))
+  .map(name => name.substring(0, name.length - 4));
 
 const allTechs = "NATIVE,JS,WASM";
 const techs =
