@@ -3,6 +3,7 @@
 
 #include <math.h>
 
+// TODO get rid of this and replace it with std::complex<double>
 class Complex {
   double re, im;
 

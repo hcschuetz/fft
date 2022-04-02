@@ -8,7 +8,7 @@ class FFT02 : public FFT {
   unsigned int n;
   const Complex* rotations;
 
-  void recur(int len, const Complex* f, Complex* out, int direction) const ;
+  void recur(int len, const Complex* f, Complex* out, int direction) const;
 
 public:
   FFT02(unsigned int n);
