@@ -85,13 +85,15 @@ async function compileNative({version, outDir}) {
   ]);
 }
 
-async function compileNode({version, wasm, outDir}) {
+async function compile({version, wasm, web, outDir}) {
   await emitSelectImpl({version});
+  const outFileBase = `${outDir}/${version}`;
   await spawnCommand(emcc, [
-    "-o", `${outDir}/${version}.js`,
+    "-o", `${outFileBase}.js`,
     "-std=c++17",
     "--memory-init-file", "0",
     "-s", "MODULARIZE=1",
+    ...web ? ["-s", "ENVIRONMENT=web",] : [],
     "-s", `WASM=${Number(wasm)}`,
     "-s", "FILESYSTEM=0",
     "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
@@ -99,70 +101,29 @@ async function compileNode({version, wasm, outDir}) {
     "-O3",
     `src/${version}.c++`, "src/c_bindings.c++",
   ]);
-}
-
-async function compileWebJS({version, outDir}) {
-  await emitSelectImpl({version});
-  const outFileBase = `${outDir}/${version}`;
-  const outFile = `${outFileBase}.js`;
-  await spawnCommand(emcc, [
-    "-o", outFile,
-    "-std=c++17",
-    "--memory-init-file", "0",
-    "-s", "MODULARIZE=1",
-    "-s", "ENVIRONMENT=web",
-    "-s", "WASM=0",
-    "-s", "FILESYSTEM=0",
-    "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
-    "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
-    "-O3",
-    `src/${version}.c++`, "src/c_bindings.c++",
-  ]);
-  const generatedContent = await readFile(outFile);
-  await writeFile(outFile, `
-const exports = {}, module = {};
-
-${generatedContent}
-
-export default Module;
-`);
   await writeFile(`${outFileBase}.d.ts`, `
 import { Instance } from "../dst/fft-instance-utils";
 declare function Module(): Promise<Instance>;
 export default Module;  
-`)
-}
-
-async function compileWebWASM({version, outDir}) {
-  await emitSelectImpl({version});
-  await spawnCommand(emcc, [
-    "-o", `${outDir}/${version}.js`,
-    "-std=c++17",
-    "--memory-init-file", "0",
-    "-s", "MODULARIZE=1",
-    "-s", "ENVIRONMENT=web",
-    "-s", "WASM=1",
-    "-s", "FILESYSTEM=0",
-    "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
-    "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
-    "-O3",
-    `src/${version}.c++`, "src/c_bindings.c++",
-  ]);
+`);
 }
 
 async function compileTechForVersion({tech, version, outDir}) {
   console.log(`==== ${tech} ${version} ====`);
   switch (tech) {
     case "NATIVE"   : await compileNative({version, outDir}); break;
-    case "JS_NODE"  : await compileNode({version, wasm: false, outDir}); break;
-    case "WASM_NODE": await compileNode({version, wasm: true, outDir}); break;
-    case "JS_WEB"   : await compileWebJS({version, outDir}); break;
-    case "WASM_WEB" : await compileWebWASM({version, outDir}); break;
+    // In the JS case compiler output for the web environment actually does
+    // work with node, but compiler output for node does not work in the
+    // browser.  So we only create a single JS build, which is for the web
+    // environment.
+    case "JS"       : await compile({version, wasm: false, web: true, outDir}); break;
+    case "WASM_NODE": await compile({version, wasm: true , web: false, outDir}); break;
+    case "WASM_WEB" : await compile({version, wasm: true , web: true , outDir}); break;
     default:
       console.error(`
 Environment variable TECH has value "${process.env.TECH}".
 Comma-separated components of TECH should be:
-"NATIVE", "JS_NODE", "WASM_NODE", "JS_WEB" or "WASM_WEB"`);
+"NATIVE", "JS", "WASM_NODE" or "WASM_WEB"`);
       break;
   }
 }
@@ -175,7 +136,7 @@ const versions = VERSIONS ? VERSIONS.split(",") :
   .map(name => name.substring(0, name.length - 4));
 
 const techs =
-  (TECH ?? "NATIVE,JS_NODE,WASM_NODE,JS_WEB,WASM_WEB")
+  (TECH ?? "NATIVE,JS,WASM_NODE,WASM_WEB")
   .split(",").map(t => t.trim().toUpperCase().replace(/-/g, "_"));
 
 

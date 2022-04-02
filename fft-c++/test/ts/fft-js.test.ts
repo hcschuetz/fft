@@ -6,14 +6,17 @@ import { versions as allVersions } from "./info";
 // --------------------------------------------------------------------------
 
 const { TECH, SIZES, VERSIONS } = process.env;
-const techs = (TECH ?? "JS_NODE,WASM_NODE,NATIVE").split(",").map(t => t.toUpperCase().replace(/-/g, "_"));
+const techs = (TECH ?? "JS,WASM,NATIVE").split(",").map(t => t.toUpperCase().replace(/-/g, "_"));
 const sizes = (SIZES ?? "1,2,4,8,16,32,64,2048").split(",").map(Number);
 const versions: string[] = VERSIONS ? VERSIONS.split(",") : allVersions;
 
 test("dummy test to make jest happy", () => expect(0).toBeFalsy());
 
-for (const tech of techs) {
+for (let tech of techs) {
   if (tech !== "NATIVE") { // The NATIVE case is handled elsewhere
+    if (tech === "WASM") {
+      tech = "WASM_NODE";
+    }
     const dstDir = `../../dst-${tech.toLowerCase().replace(/_/g, "-")}/`;
     describe(`Calling compilations to ${tech}`, () => {
       let instance01: Instance;

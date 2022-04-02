@@ -18,8 +18,7 @@ async function runTechForVersion({version, tech}) {
   console.log(`==== ${tech} ${version} ====`);
   switch (tech) {
     case "NATIVE": await runNative({version}); break;
-    case "JS":
-    case "JS_NODE": await runNode({version, tech: "js-node"}); break;
+    case "JS": await runNode({version, tech: "js"}); break;
     case "WASM":
     case "WASM_NODE": await runNode({version, tech: "wasm-node"}); break;
     default:
