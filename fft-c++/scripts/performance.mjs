@@ -43,7 +43,7 @@ const versions = (VERSIONS ?? allVersions).split(",");
 const allTechs = "NATIVE,JS,WASM";
 const techs =
   (TECH ?? allTechs).split(",")
-  .map(t => t.toUpperCase().replace(/[-_]NODE/g, ""));
+  .map(t => t.toUpperCase().replace(/[-_]NODE$/, ""));
 
 async function main() {
   try {
