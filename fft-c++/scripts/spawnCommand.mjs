@@ -1,6 +1,6 @@
 import { spawn } from "child_process";
 
-export async function spawnCommand(cmd, args) {
+export async function spawnCommand(cmd, args = []) {
   // console.log("spawn:", [cmd, ...args].join(" "));
   await new Promise((resolve, reject) => {
     const child = spawn(cmd, args);
