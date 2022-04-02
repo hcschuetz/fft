@@ -11,6 +11,8 @@ import fft47pointers from "fft-cpp/dst-js/fft47pointers";
 import fft48 from "fft-cpp/dst-js/fft48";
 import fft99b from "fft-cpp/dst-js/fft99b";
 import fft99c from "fft-cpp/dst-js/fft99c";
+import fftKiss from "fft-cpp/dst-js/fftKiss";
+import fftKiss2 from "fft-cpp/dst-js/fftKiss2";
 
 
 export const factories: Record<string, () => Promise<Instance>> = {
@@ -22,6 +24,8 @@ export const factories: Record<string, () => Promise<Instance>> = {
   fft48,
   fft99b,
   fft99c,
+  fftKiss,
+  fftKiss2,
 };
 
 class TestableFFTFromInstance implements TestableFFT {
