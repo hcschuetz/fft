@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readdir } from "fs/promises";
 import { spawnCommand } from "./spawnCommand.mjs";
 
 async function runNative({version}) {
