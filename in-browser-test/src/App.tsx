@@ -9,11 +9,13 @@ import { PromisedVersions, VersionProvider } from './VersionContext';
 import Tests from './Tests';
 import Benchmark from './Benchmark';
 import UserAgent from './UserAgent';
+import { testableWasmVersions } from "./wasmVersions";
 
 
 const versions: PromisedVersions = {
   ...prefixKeys("[TS] ", mapObject(testableVersions, asPromise)),
-  ...prefixKeys("[C++] ", testableCppVersions)
+  ...prefixKeys("[C++] ", testableCppVersions),
+  ...prefixKeys("[WASM] ", testableWasmVersions),
 };
 
 function App() {

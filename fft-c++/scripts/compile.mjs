@@ -90,24 +90,47 @@ async function compileNative({version, outDir}) {
 async function compile({version, wasm, web, outDir}) {
   await emitSelectImpl({version});
   const outFileBase = `${outDir}/${version}`;
+
+  const withJS = !(web && wasm);
+
   await spawnCommand(emcc, [
-    "-o", `${outFileBase}.js`,
+    "-o", `${outFileBase}.${withJS ? "js" : "wasm"}`,
     "-std=c++17",
     "--memory-init-file", "0",
     "-s", "MODULARIZE=1",
     ...web ? ["-s", "ENVIRONMENT=web",] : [],
     "-s", `WASM=${Number(wasm)}`,
+    ... withJS ? [] : ["-s", "MAIN_MODULE=2", "--no-entry"],
     "-s", "FILESYSTEM=0",
     "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
     "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
     "-O3",
     `src/${version}.c++`, "src/c_bindings.c++",
   ]);
-  await writeFile(`${outFileBase}.d.ts`, `
+
+  if (withJS) {
+    await writeFile(`${outFileBase}.d.ts`, `
 import { Instance } from "../dst/fft-instance-utils";
 declare function Module(): Promise<Instance>;
 export default Module;  
 `);
+  } else {
+    // This is an ad-hoc solution for packaging WASM.
+    // TODO Check if it is possible to use a webpack wasm-loader without
+    // ejecting a create-react-app application.
+    const wasmCode = await readFile(`${outFileBase}.wasm`);
+    await writeFile(`${outFileBase}-wasm.js`, `
+const ${version}_wasm_base64 = ${"`"}
+${wasmCode.toString("base64").match(/.{1,72}/g).join("\n")}
+${"`"};
+
+export default ${version}_wasm_base64;
+`);
+    await writeFile(`${outFileBase}-wasm.d.ts`, `
+declare const ${version}_wasm_base64: string;
+export default ${version}_wasm_base64;
+`);
+  }
 }
 
 async function compileTechForVersion({tech, version, outDir}) {
@@ -118,7 +141,7 @@ async function compileTechForVersion({tech, version, outDir}) {
     // work with node, but compiler output for node does not work in the
     // browser.  So we only create a single JS build, which is for the web
     // environment.
-    case "JS"       : await compile({version, wasm: false, web: true, outDir}); break;
+    case "JS"       : await compile({version, wasm: false, web: true , outDir}); break;
     case "WASM_NODE": await compile({version, wasm: true , web: false, outDir}); break;
     case "WASM_WEB" : await compile({version, wasm: true , web: true , outDir}); break;
     default:
