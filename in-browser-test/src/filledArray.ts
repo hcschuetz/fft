@@ -1,4 +1,4 @@
-const filledArray = <T,>(n: number, f: (i: number) => T): T[] =>
-  new Array(n).fill(undefined).map((_, i) => f(i));
+const filledArray = <T,>(length: number, f: (i: number) => T): T[] =>
+  Array.from({length}, (_, i) => f(i));
 
 export default filledArray;
