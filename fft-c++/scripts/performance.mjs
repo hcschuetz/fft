@@ -20,16 +20,22 @@ async function runTechForVersion({version, tech}) {
   switch (tech) {
     case "NATIVE": await runNative({version}); break;
     case "JS": await runNode({version, tech: "js"}); break;
+    case "WASM_JS": await runNode({version, tech: "wasm-node"}); break;
     case "WASM":
-    case "WASM_NODE": await runNode({version, tech: "wasm-node"}); break;
+      await spawnCommand(ts_node, [
+        "test/ts/perf-wasm.ts",
+        `dst-wasm-web/${version}.wasm`,
+      ]);
+      break;
     default:
       // TODO such explanations should be written upon argument --help
       console.error(`
 Environment variable TECH has value "${process.env.TECH}".
 Comma-separated components of TECH should be taken from these values:
-- NATIVE: Run FFTs compiled to native code.
-- JS:     Run FFTs compiled to JS.
-- WASM:   Run FFTs compiled to WASM.
+- NATIVE:  Run FFTs compiled to native code.
+- JS:      Run FFTs compiled to JS.
+- WASM_JS: Run FFTs compiled to WASM (via the emcc-generated JS wrapper).
+- WASM:    Run FFTs compiled to WASM.
 `);
       break;
   }
@@ -43,7 +49,7 @@ const versions = VERSIONS ? VERSIONS.split(",") :
   .filter(name => name.match(/fft.+\.c\+\+/))
   .map(name => name.substring(0, name.length - 4));
 
-const allTechs = "NATIVE,JS,WASM";
+const allTechs = "NATIVE,JS,WASM_JS,WASM";
 const techs =
   (TECH ?? allTechs).split(",")
   .map(t => t.toUpperCase().replace(/[-_]NODE$/, ""));
