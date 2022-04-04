@@ -35,7 +35,7 @@ async function compileNativeTest() {
   case "C++":
   case "CPP":
     await spawnCommand("g++", [
-      "-c",
+      "-c", "-O4",
       "-o", test_o,
       "-I", "src",
       "test/native/test.c++",
@@ -48,7 +48,7 @@ async function compileNativeTest() {
   // We are able to test the API from C and C++, but it suffices to run
   // performance measurements from a single language.
   await spawnCommand("g++", [
-    "-c",
+    "-c", "-O4",
     "-o", perf_o,
     "-I", "src",
     "-std=c++17",
@@ -72,12 +72,14 @@ async function compileNative({version, outDir}) {
   // The following linking steps are for test code, not productive code.
   const dstDir = "dst-native/";
   await spawnCommand("g++", [
+    "-O4",
     "-o", binDir + "test_" + version,
     test_o,
     dstDir + version + "_c_bindings.o",
     dstDir + version + ".o",
   ]);
   await spawnCommand("g++", [
+    "-O4",
     "-o", binDir + "perf_" + version,
     perf_o,
     dstDir + version + "_c_bindings.o",
