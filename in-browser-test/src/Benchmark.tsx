@@ -6,7 +6,7 @@ import makeTestData from "./makeTestData";
 import { TestableFFT, useVersions, VersionStates } from "./VersionContext";
 import sleep from "./sleep";
 import ParameterTable from "./ParameterTable";
-import useSlider from "./useSlider";
+import useSlider, { useBooleanSlider } from "./useSlider";
 
 const blockSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
 
@@ -23,13 +23,14 @@ type ComputeArgs = {
   pause: number,
   blockSize: number,
   n: number,
+  backward: boolean,
   setResults: (value: Results) => void,
 };
 
 async function compute({
   thisCallCount, callCount,
   versions, testVersions,
-  nBlocks, pause, blockSize, n,
+  nBlocks, pause, blockSize, n, backward,
   setResults,
 }: ComputeArgs): Promise<void> {
   function log(...args: any[]) {
@@ -52,7 +53,11 @@ async function compute({
         .filter((name) => testVersions[name])
         .map((name) => [name, new Array(nBlocks).fill("") as benchmarkState[]])
       );
-    for (const [name, version] of Object.entries(versions)) {
+    const versionEntries = Object.entries(versions);
+    if (backward) {
+      versionEntries.reverse();
+    }
+    for (const [name, version] of versionEntries) {
       if (version.status !== "resolved" || !testVersions[name]) continue;
       log("testing version", name);
       const times = results[name];
@@ -265,6 +270,11 @@ const Benchmark: FC = () => {
     min: 0, max: 60,
     init: 0, transform: x => x,
   });
+  const [backward, directionRow] = useBooleanSlider({
+    id: "backwardInput", label: "version execution order:",
+    falseLabel: "forward", trueLabel: "backward",
+    init: false,
+  });
 
   const [results, setResults] = useState<Results>({});
 
@@ -280,6 +290,7 @@ const Benchmark: FC = () => {
         {blockSizeRow}
         {pauseRow}
         {nBlocksRow}
+        {directionRow}
       </ParameterTable>
       <p>
         Execute: {}
@@ -287,7 +298,7 @@ const Benchmark: FC = () => {
           onClick={() => compute({
             thisCallCount: ++callCount.current, callCount,
             versions, testVersions,
-            nBlocks, pause, blockSize, n,
+            nBlocks, pause, blockSize, n, backward,
             setResults,
           })}
           disabled={!Object.values(testVersions).some(value => value)}

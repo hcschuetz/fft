@@ -35,4 +35,37 @@ function useSlider<T,>(props: {
   )];
 }
 
+export function useBooleanSlider(props: {
+  id: string, label: ReactNode,
+  falseLabel: ReactNode, trueLabel: ReactNode,
+  init: boolean,
+}): [boolean, ReactNode] {
+  const [x, setX] = useState(props.init);
+  const dirLabel = (value: boolean, text: ReactNode) => (
+    <span
+      style={{cursor: "default", verticalAlign: "top"}}
+      onClick={() => setX(value)}
+    >
+      {text}
+      </span>
+  );
+  return [x, (
+    <tr>
+    <td>
+      <label htmlFor={props.id}>{props.label}</label>
+    </td>
+    <TDInput colSpan={2}>
+      {dirLabel(false, props.falseLabel)}
+      <input id={props.id} type="range"
+        min={0} max={1}
+        value={Number(x)}
+        onChange={event => setX(event.target.value !== "0")}
+        style={{margin: "0 1em", width: "2.5em"}}
+      />
+      {dirLabel(true, props.trueLabel)}
+    </TDInput>
+  </tr>
+  )]
+}
+
 export default useSlider;
