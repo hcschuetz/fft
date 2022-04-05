@@ -2,29 +2,24 @@
 import { readdir } from "fs/promises";
 import { spawnCommand } from "./spawnCommand.mjs";
 
-async function runNative({version}) {
-  await spawnCommand(`test/bin/perf_${version}`);
-}
-
 const ts_node = process.platform.startsWith("win") ? "ts-node.cmd" : "ts-node";
-
-async function runNode({version, tech}) {
-  await spawnCommand(ts_node, [
-    "test/ts/perf.ts",
-    `../../dst-${tech}/${version}.js`,
-  ]);
-}
 
 async function runTechForVersion({version, tech}) {
   console.log(`==== ${tech} ${version} ====`);
   switch (tech) {
-    case "NATIVE": await runNative({version}); break;
-    case "JS": await runNode({version, tech: "js"}); break;
-    case "WASM_JS": await runNode({version, tech: "wasm-node"}); break;
+    case "NATIVE":
+      await spawnCommand(`test/bin/perf_${version}`);
+      break;
+    case "JS":
+      await spawnCommand(ts_node, [
+        "test/ts/perf.ts",
+        `../../dst-js/${version}.js`,
+      ]);
+      break;
     case "WASM":
       await spawnCommand(ts_node, [
         "test/ts/perf-wasm.ts",
-        `dst-wasm-web/${version}.wasm`,
+        `dst-wasm/${version}.wasm`,
       ]);
       break;
     default:
@@ -34,7 +29,6 @@ Environment variable TECH has value "${process.env.TECH}".
 Comma-separated components of TECH should be taken from these values:
 - NATIVE:  Run FFTs compiled to native code.
 - JS:      Run FFTs compiled to JS.
-- WASM_JS: Run FFTs compiled to WASM (via the emcc-generated JS wrapper).
 - WASM:    Run FFTs compiled to WASM.
 `);
       break;
@@ -49,10 +43,7 @@ const versions = VERSIONS ? VERSIONS.split(",") :
   .filter(name => name.match(/fft.+\.c\+\+/))
   .map(name => name.substring(0, name.length - 4));
 
-const allTechs = "NATIVE,JS,WASM_JS,WASM";
-const techs =
-  (TECH ?? allTechs).split(",")
-  .map(t => t.toUpperCase().replace(/[-_]NODE$/, ""));
+const techs = (TECH ?? "NATIVE,JS,WASM").split(",").map(t => t.toUpperCase());
 
 async function main() {
   try {

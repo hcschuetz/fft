@@ -3,16 +3,16 @@ import decodeBase64 from "./decodeBase64";
 import mapObject from "./mapObject";
 import { Complex } from "complex/dst/Complex";
 
-import fft01 from "fft-cpp/dst-wasm-web/fft01-wasm";
-import fft02 from "fft-cpp/dst-wasm-web/fft02-wasm";
-import fft44 from "fft-cpp/dst-wasm-web/fft44-wasm";
-import fft47 from "fft-cpp/dst-wasm-web/fft47-wasm";
-import fft47pointers from "fft-cpp/dst-wasm-web/fft47pointers-wasm";
-import fft48 from "fft-cpp/dst-wasm-web/fft48-wasm";
-import fft99b from "fft-cpp/dst-wasm-web/fft99b-wasm";
-import fft99c from "fft-cpp/dst-wasm-web/fft99c-wasm";
-import fftKiss from "fft-cpp/dst-wasm-web/fftKiss-wasm";
-import fftKiss2 from "fft-cpp/dst-wasm-web/fftKiss2-wasm";
+import fft01 from "fft-cpp/dst-wasm/fft01-wasm";
+import fft02 from "fft-cpp/dst-wasm/fft02-wasm";
+import fft44 from "fft-cpp/dst-wasm/fft44-wasm";
+import fft47 from "fft-cpp/dst-wasm/fft47-wasm";
+import fft47pointers from "fft-cpp/dst-wasm/fft47pointers-wasm";
+import fft48 from "fft-cpp/dst-wasm/fft48-wasm";
+import fft99b from "fft-cpp/dst-wasm/fft99b-wasm";
+import fft99c from "fft-cpp/dst-wasm/fft99c-wasm";
+import fftKiss from "fft-cpp/dst-wasm/fftKiss-wasm";
+import fftKiss2 from "fft-cpp/dst-wasm/fftKiss2-wasm";
 
 
 export const base64_versions: Record<string, string> = {

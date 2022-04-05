@@ -87,20 +87,23 @@ async function compileNative({version, outDir}) {
   ]);
 }
 
-async function compile({version, wasm, web, outDir}) {
+async function compile({version, wasm, outDir}) {
   await emitSelectImpl({version});
   const outFileBase = `${outDir}/${version}`;
 
-  const withJS = !(web && wasm);
-
   await spawnCommand(emcc, [
-    "-o", `${outFileBase}.${withJS ? "js" : "wasm"}`,
+    "-o", `${outFileBase}.${wasm ? "wasm" : "js"}`,
     "-std=c++17",
     "--memory-init-file", "0",
     "-s", "MODULARIZE=1",
-    ...web ? ["-s", "ENVIRONMENT=web",] : [],
+    // In the JS case compiler output for the web environment actually does
+    // work with node, but compiler output for node does not work in the
+    // browser.  So we only create a single JS build, which is for the web
+    // environment.  In the WASM case the ENVIRONMENT does not make a
+    // difference anyway.
+    "-s", "ENVIRONMENT=web",
     "-s", `WASM=${Number(wasm)}`,
-    ... withJS ? [] : ["-s", "MAIN_MODULE=2", "--no-entry"],
+    ... wasm ? ["-s", "MAIN_MODULE=2", "--no-entry"] : [],
     "-s", "FILESYSTEM=0",
     "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
     "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
@@ -108,7 +111,7 @@ async function compile({version, wasm, web, outDir}) {
     `src/${version}.c++`, "src/c_bindings.c++",
   ]);
 
-  if (withJS) {
+  if (!wasm) {
     await writeFile(`${outFileBase}.d.ts`, `
 import { Instance } from "../dst/fft-instance-utils";
 declare function Module(): Promise<Instance>;
@@ -136,19 +139,14 @@ export default ${version}_wasm_base64;
 async function compileTechForVersion({tech, version, outDir}) {
   console.log(`==== ${tech} ${version} ====`);
   switch (tech) {
-    case "NATIVE"   : await compileNative({version, outDir}); break;
-    // In the JS case compiler output for the web environment actually does
-    // work with node, but compiler output for node does not work in the
-    // browser.  So we only create a single JS build, which is for the web
-    // environment.
-    case "JS"       : await compile({version, wasm: false, web: true , outDir}); break;
-    case "WASM_NODE": await compile({version, wasm: true , web: false, outDir}); break;
-    case "WASM_WEB" : await compile({version, wasm: true , web: true , outDir}); break;
+    case "NATIVE": await compileNative({version, outDir}); break;
+    case "JS"    : await compile({version, wasm: false, outDir}); break;
+    case "WASM"  : await compile({version, wasm: true , outDir}); break;
     default:
       console.error(`
 Environment variable TECH has value "${process.env.TECH}".
 Comma-separated components of TECH should be:
-"NATIVE", "JS", "WASM_NODE" or "WASM_WEB"`);
+"NATIVE", "JS", "WASM"`);
       break;
   }
 }
@@ -160,15 +158,13 @@ const versions = VERSIONS ? VERSIONS.split(",") :
   .filter(name => name.match(/fft.+\.c\+\+/))
   .map(name => name.substring(0, name.length - 4));
 
-const techs =
-  (TECH ?? "NATIVE,JS,WASM_NODE,WASM_WEB")
-  .split(",").map(t => t.trim().toUpperCase().replace(/-/g, "_"));
+const techs = (TECH ?? "NATIVE,JS,WASM").split(",").map(t => t.toUpperCase());
 
 
 async function main() {
   try {
     for (const tech of techs) {
-      const outDir = "dst-" + tech.toLowerCase().replace(/_/g, "-");
+      const outDir = "dst-" + tech.toLowerCase();
       await mkdir(outDir, {recursive: true});
       if (tech === "NATIVE") {
         await compileNativeTest();

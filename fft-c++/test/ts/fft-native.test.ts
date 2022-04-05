@@ -60,7 +60,7 @@ export const getDist = (a: ComplexArray, b: ComplexArray, scale_a: number = 1, s
 }
 
 const { TECH, SIZES, VERSIONS } = process.env;
-const techs = (TECH ?? "JS_NODE,WASM_NODE,NATIVE").split(",").map(t => t.toUpperCase().replace(/-/g, "_"));
+const techs = (TECH ?? "JS,WASM,NATIVE").split(",").map(t => t.toUpperCase());
 const sizes = (SIZES ?? "1,2,4,8,16,32,64,2048").split(",").map(Number);
 const versions: string[] = VERSIONS ? VERSIONS.split(",") : allVersions;
 

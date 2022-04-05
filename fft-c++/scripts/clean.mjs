@@ -4,10 +4,8 @@ const paths = `
 src/selectImpl.h++
 dst
 dst-native
-dst-js-node
-dst-wasm-node
-dst-js-web
-dst-wasm-web
+dst-js
+dst-wasm
 test/bin
 `.trim().split(/\n|\r\n?/).map(line => line.trim());
 
