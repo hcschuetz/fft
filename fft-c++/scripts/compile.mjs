@@ -58,32 +58,34 @@ async function compileNativeTest() {
 
 async function compileNative({version, outDir}) {
   await emitSelectImpl({version});
+  const baseName = `${outDir}/${version}`;
+  const fft_code_o = `${baseName}.o`;
+  const c_bindings_o = `${baseName}_c_bindings.o`;
   await spawnCommand("g++", [
     "-c", "-std=c++17", "-O4",
-    "-o", `${outDir}/${version}.o`,
+    "-o", fft_code_o,
     `src/${version}.c++`,
   ]);
   await spawnCommand("g++", [
     "-c", "-std=c++17", "-O4",
-    "-o", `${outDir}/${version}_c_bindings.o`,
+    "-o", c_bindings_o,
     "src/c_bindings.c++",
   ]);
 
   // The following linking steps are for test code, not productive code.
-  const dstDir = "dst-native/";
   await spawnCommand("g++", [
     "-O4",
     "-o", binDir + "test_" + version,
     test_o,
-    dstDir + version + "_c_bindings.o",
-    dstDir + version + ".o",
+    c_bindings_o,
+    fft_code_o,
   ]);
   await spawnCommand("g++", [
     "-O4",
     "-o", binDir + "perf_" + version,
     perf_o,
-    dstDir + version + "_c_bindings.o",
-    dstDir + version + ".o",
+    c_bindings_o,
+    fft_code_o,
   ]);
 }
 
