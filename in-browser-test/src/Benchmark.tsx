@@ -197,6 +197,7 @@ const ResultsTable: FC<{results: Results}> = ({results}) => {
                       time={time} fastest={fastest} slowest={slowest}
                     />
                   ))}
+                  <Median idx={visualizationModeIdx} {...{times, slowest, fastest}}/>
                 </svg>
               </TH>
               {times.map((time, j) => (
@@ -261,6 +262,34 @@ const BlockVisualization: FC<{
     );
     default: return null;
   }
+}
+
+const Median: FC<{
+  idx: number, slowest: number, fastest: number, times: benchmarkState[],
+}> = ({
+  idx, slowest, fastest, times,
+}) => {
+  if (fastest > slowest || (idx === 1 && fastest >= slowest)) {
+    return null;
+  }
+  const numbers = times.filter(t => typeof(t) === "number") as number[];
+  const len = numbers.length
+  // A median for len === 1 exists, but its's just that single value:
+  if (len < 2) return null;
+
+  numbers.sort();
+  const median =
+    len % 2 === 1
+    ? numbers[(len - 1) / 2]
+    // Notice that this is the geometric mean, not the arithmetic one:
+    : Math.sqrt(numbers[len / 2 - 1] * numbers[len / 2]);
+  const fraction =
+    idx === 0 ? fastest / median :
+    idx === 1 ? (Math.log(median) - Math.log(fastest)) / (Math.log(slowest) - Math.log(fastest)):
+    idx === 2 ? median / slowest :
+    0; // should not occur
+  const x = `${fraction * 100}%`;
+  return <line stroke="black" strokeWidth="0.3%" x1={x} y1="0%" x2={x} y2="100%"/>
 }
 
 const Benchmark: FC = () => {
