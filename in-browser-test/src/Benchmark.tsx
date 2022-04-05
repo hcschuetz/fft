@@ -160,9 +160,6 @@ const ResultsTable: FC<{results: Results}> = ({results}) => {
       <thead>
         <tr>
           <TH rowSpan={2}/>
-          <TH colSpan={nBlocks}>
-            time per call (in microseconds)
-          </TH>
           <TD rowSpan={2} style={{verticalAlign: "top"}}>
             <input style={{transform: "rotate(-90deg)", width: "3em", height: "3em"}}
               type="range" min="0" max={visualizationModes.length - 1}
@@ -175,6 +172,9 @@ const ResultsTable: FC<{results: Results}> = ({results}) => {
               {visualizationModesBetter[visualizationModeIdx]}
             </div>
           </TD>
+          <TH colSpan={nBlocks}>
+            time per call (in microseconds)
+          </TH>
         </tr>
         <tr>
           <TH colSpan={nBlocks} style={{background: "#eee"}}>
@@ -187,11 +187,6 @@ const ResultsTable: FC<{results: Results}> = ({results}) => {
           <Fragment key={name}>
             <tr>
               <TH rowSpan={2} left>{name}</TH>
-              {times.map((time, j) => (
-                <BenchmarkField key={j}>
-                  {typeof(time) === "number" ? (time * 1e6).toFixed(1) : time}
-                </BenchmarkField>
-              ))}
               <TH rowSpan={2} style={{verticalAlign: "middle"}}>
                 <svg viewBox="0 0 10 1" style={{width: "25em", height: "2.5em"}}>
                   {times.map((time, blockNo) => typeof(time) === "number" && (
@@ -204,6 +199,11 @@ const ResultsTable: FC<{results: Results}> = ({results}) => {
                   ))}
                 </svg>
               </TH>
+              {times.map((time, j) => (
+                <BenchmarkField key={j}>
+                  {typeof(time) === "number" ? (time * 1e6).toFixed(1) : time}
+                </BenchmarkField>
+              ))}
             </tr>
             <tr>
               {times.map((time, j) => (
