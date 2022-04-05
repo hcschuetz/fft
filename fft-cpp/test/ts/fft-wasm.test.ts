@@ -1,4 +1,3 @@
-import { zero } from "complex/dst/Complex";
 import getWasmAPI, { API } from "./get-wasm-api";
 import { versions as allVersions } from "./info";
 
