@@ -13,9 +13,9 @@ import { testableWasmVersions } from "./wasmVersions";
 
 
 const versions: PromisedVersions = {
-  ...prefixKeys("[TS] ", mapObject(testableVersions, asPromise)),
-  ...prefixKeys("[C++] ", testableCppVersions),
-  ...prefixKeys("[WASM] ", testableWasmVersions),
+  ...prefixKeys("TJ\u00a0", mapObject(testableVersions, asPromise)),
+  ...prefixKeys("CJ\u00a0", testableCppVersions),
+  ...prefixKeys("CW\u00a0", testableWasmVersions),
 };
 
 function App() {
