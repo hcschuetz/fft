@@ -24,13 +24,14 @@ type ComputeArgs = {
   blockSize: number,
   n: number,
   backward: boolean,
+  versionMajor: boolean,
   setResults: (value: Results) => void,
 };
 
 async function compute({
   thisCallCount, callCount,
   versions, testVersions,
-  nBlocks, pause, blockSize, n, backward,
+  nBlocks, pause, blockSize, n, backward, versionMajor,
   setResults,
 }: ComputeArgs): Promise<void> {
   function log(...args: any[]) {
@@ -53,41 +54,57 @@ async function compute({
         .filter((name) => testVersions[name])
         .map((name) => [name, new Array(nBlocks).fill("") as benchmarkState[]])
       );
-    const versionEntries = Object.entries(versions);
+
+    const runBlock = async (name: string, fft: TestableFFT, times: benchmarkState[], i: number) => {
+      checkStop("A");
+      if (pause > 0) {
+        times[i] = "pause";
+        setResults({...results});
+        log("begin pause", name, i);
+        await sleep(pause * 1e3);
+        log("end pause", name, i);
+        checkStop("B");
+      }
+      const start = performance.now();
+      log("run", name, i);
+      times[i] = "run";
+      setResults({...results});
+      await sleep(0);
+      for (let j = 0; j < blockSize; j++) {
+        fft.run(1);
+      }
+      checkStop("C");
+      const time = (performance.now() - start) * 1e-3 / blockSize;
+      times[i] = time;
+      setResults({...results});
+      await sleep(0);
+    }
+    const versionEntries =
+      Object.entries(versions)
+      .flatMap(([name, version]): {name: string, fft: TestableFFT, times: benchmarkState[]}[] => {
+        if (version.status !== "resolved" || !testVersions[name]) {
+          return [];
+        }
+        const times = results[name];
+        const factory = version.value;
+        const fft: TestableFFT = factory(n);
+        data.forEach((v, i) => fft.setInput(i, v));
+        return [{ name, fft, times }];
+      });
     if (backward) {
       versionEntries.reverse();
     }
-    for (const [name, version] of versionEntries) {
-      if (version.status !== "resolved" || !testVersions[name]) continue;
-      log("testing version", name);
-      const times = results[name];
-      const factory = version.value;
-      const fft: TestableFFT = factory(n);
-      data.forEach((v, i) => fft.setInput(i, v));
-      log("got func")
+    if (versionMajor) {
+      for (const { name, fft, times } of versionEntries) {
+        for (let i = 0; i < nBlocks; i++) {
+          await runBlock(name, fft, times, i);
+        }
+      }
+    } else {
       for (let i = 0; i < nBlocks; i++) {
-        checkStop("A");
-        if (pause > 0) {
-          times[i] = "pause";
-          setResults({...results});
-          log("begin pause", name, i);
-          await sleep(pause * 1e3);
-          log("end pause", name, i);
-          checkStop("B");
+        for (const { name, fft, times } of versionEntries) {
+          await runBlock(name, fft, times, i);
         }
-        const start = performance.now();
-        log("run", name, i);
-        times[i] = "run";
-        setResults({...results});
-        await sleep(0);
-        for (let j = 0; j < blockSize; j++) {
-          fft.run(1);
-        }
-        checkStop("C");
-        const time = (performance.now() - start) * 1e-3 / blockSize;
-        times[i] = time;
-        setResults({...results});
-        await sleep(0);
       }
     }
     log("==== completed");
@@ -275,6 +292,11 @@ const Benchmark: FC = () => {
     falseLabel: "forward", trueLabel: "backward",
     init: false,
   });
+  const [versionMajor, nestingRow] = useBooleanSlider({
+    id: "majorInput", label: "block execution order:",
+    falseLabel: "a block for all versions", trueLabel: "all blocks for each version",
+    init: false,
+  });
 
   const [results, setResults] = useState<Results>({});
 
@@ -291,6 +313,7 @@ const Benchmark: FC = () => {
         {pauseRow}
         {nBlocksRow}
         {directionRow}
+        {nestingRow}
       </ParameterTable>
       <p>
         Execute: {}
@@ -298,7 +321,7 @@ const Benchmark: FC = () => {
           onClick={() => compute({
             thisCallCount: ++callCount.current, callCount,
             versions, testVersions,
-            nBlocks, pause, blockSize, n, backward,
+            nBlocks, pause, blockSize, n, backward, versionMajor,
             setResults,
           })}
           disabled={!Object.values(testVersions).some(value => value)}
