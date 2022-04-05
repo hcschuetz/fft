@@ -18,6 +18,7 @@ function useSlider<T,>(props: {
   const [x, setX] = useState(props.init);
   const transformed = props.transform(x);
   return [transformed, (
+    // Hacky table styling.  TODO Convert to grid.
     <tr>
       <td>
         <label htmlFor={props.id}>{props.label}</label>
@@ -29,7 +30,11 @@ function useSlider<T,>(props: {
           onChange={event => setX(Number(event.target.value))}
         />
       </TDInput>
-      <TDOutput>{transformed}</TDOutput>
+      <td style={{width: "20em", textAlign: "left"}}>
+        <div style={{display: "inline-block", width: "3em", textAlign: "right"}}>
+          {transformed}
+        </div>
+      </td>
     </tr>
 
   )];
