@@ -293,8 +293,8 @@ const Benchmark: FC = () => {
     init: false,
   });
   const [versionMajor, nestingRow] = useBooleanSlider({
-    id: "majorInput", label: "block execution order:",
-    falseLabel: "a block for all versions", trueLabel: "all blocks for each version",
+    id: "majorInput", label: "block execution for versions:",
+    falseLabel: "a block at a time", trueLabel: "all blocks at once",
     init: false,
   });
 
