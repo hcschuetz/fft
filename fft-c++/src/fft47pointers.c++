@@ -57,10 +57,10 @@ void FFT47pointers::run(const Complex* f, Complex* out, int direction) const {
     const Complex b1 = *q; q += quarterN;
     const Complex b3 = *q;
 
-    const Complex c0 =  b0 + b1;
-    const Complex c1 =  b0 - b1;
-    const Complex c2 =  b2 + b3;
-    const Complex c3 = (b2 - b3).rot90() * negDirection;
+    const Complex c0 =       b0 + b1;
+    const Complex c1 =       b0 - b1;
+    const Complex c2 =       b2 + b3;
+    const Complex c3 = rot90(b2 - b3) * negDirection;
 
     *o++ = c0 + c2;
     *o++ = c1 + c3;
@@ -90,10 +90,10 @@ void FFT47pointers::run(const Complex* f, Complex* out, int direction) const {
         const Complex b2 = *o2;
         const Complex b3 = *o3;
 
-        const Complex c0 =  b0 + b1;
-        const Complex c1 =  b0 - b1;
-        const Complex c2 =  b2 + b3;
-        const Complex c3 = (b2 - b3).rot90() * negDirection;
+        const Complex c0 =       b0 + b1;
+        const Complex c1 =       b0 - b1;
+        const Complex c2 =       b2 + b3;
+        const Complex c3 = rot90(b2 - b3) * negDirection;
 
         *o0 = c0 + c2;
         *o1 = c1 + c3;
@@ -124,10 +124,10 @@ void FFT47pointers::run(const Complex* f, Complex* out, int direction) const {
         const Complex b2 = *o2 * r1;
         const Complex b3 = *o3 * r3;
 
-        const Complex c0 =  b0 + b1;
-        const Complex c1 =  b0 - b1;
-        const Complex c2 =  b2 + b3;
-        const Complex c3 = (b2 - b3).rot90() * negDirection;
+        const Complex c0 =       b0 + b1;
+        const Complex c1 =       b0 - b1;
+        const Complex c2 =       b2 + b3;
+        const Complex c3 = rot90(b2 - b3) * negDirection;
 
         *o0 = c0 + c2;
         *o1 = c1 + c3;
@@ -154,7 +154,7 @@ void FFT47pointers::run(const Complex* f, Complex* out, int direction) const {
       Complex *o0 = &out[quarterLen], *o1 = o0 + halfLen;
 
       const Complex z0 =  *o0;
-      const Complex z1 = (*o1).rot90() * negDirection;
+      const Complex z1 = rot90(*o1) * negDirection;
 
       *o0 = z0 + z1;
       *o1 = z0 - z1;

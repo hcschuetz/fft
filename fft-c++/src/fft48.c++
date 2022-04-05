@@ -59,10 +59,10 @@ void FFT48::run(const Complex* f, Complex* out, int direction) const {
     const Complex b1 = f[offset]; offset += quarterN;
     const Complex b3 = f[offset];
 
-    const Complex c0 =  b0 + b1;
-    const Complex c1 =  b0 - b1;
-    const Complex c2 =  b2 + b3;
-    const Complex c3 = (b2 - b3).rot90() * negDirection;
+    const Complex c0 =       b0 + b1;
+    const Complex c1 =       b0 - b1;
+    const Complex c2 =       b2 + b3;
+    const Complex c3 = rot90(b2 - b3) * negDirection;
 
     out[out_offset++] = c0 + c2;
     out[out_offset++] = c1 + c3;
@@ -92,10 +92,10 @@ void FFT48::run(const Complex* f, Complex* out, int direction) const {
         const Complex b2 = out[i2];
         const Complex b3 = out[i3];
 
-        const Complex c0 =  b0 + b1;
-        const Complex c1 =  b0 - b1;
-        const Complex c2 =  b2 + b3;
-        const Complex c3 = (b2 - b3).rot90() * negDirection;
+        const Complex c0 =       b0 + b1;
+        const Complex c1 =       b0 - b1;
+        const Complex c2 =       b2 + b3;
+        const Complex c3 = rot90(b2 - b3) * negDirection;
 
         out[i0] = c0 + c2;
         out[i1] = c1 + c3;
@@ -126,10 +126,10 @@ void FFT48::run(const Complex* f, Complex* out, int direction) const {
         const Complex b2 = out[i2] * r1;
         const Complex b3 = out[i3] * r3;
 
-        const Complex c0 =  b0 + b1;
-        const Complex c1 =  b0 - b1;
-        const Complex c2 =  b2 + b3;
-        const Complex c3 = (b2 - b3).rot90() * negDirection;
+        const Complex c0 =       b0 + b1;
+        const Complex c1 =       b0 - b1;
+        const Complex c2 =       b2 + b3;
+        const Complex c3 = rot90(b2 - b3) * negDirection;
 
         out[i0] = c0 + c2;
         out[i1] = c1 + c3;
