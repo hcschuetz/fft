@@ -41,7 +41,6 @@ class TestableFFTFromWASM implements TestableFFT {
   private input: number;
   private output: number;
   private fft: number;
-  private run_fft: API["run_fft"];
   private isDisposed: boolean = false;
 
   constructor(
@@ -52,7 +51,6 @@ class TestableFFTFromWASM implements TestableFFT {
     this.input = api.malloc(size * 16);
     this.output = api.malloc(size * 16);
     this.fft = api.prepare_fft(size);
-    this.run_fft = api.run_fft;
   }
 
   private checkDisposed() {
@@ -69,7 +67,7 @@ class TestableFFTFromWASM implements TestableFFT {
   }
   run(direction: number = 1): void {
     this.checkDisposed();
-    this.run_fft(this.fft, this.input, this.output, direction);
+    this.api.run_fft(this.fft, this.input, this.output, direction);
   }
   getOutput(i: number): Complex {
     this.checkDisposed();
