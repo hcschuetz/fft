@@ -3,10 +3,11 @@ import { FC, Fragment, useState } from "react";
 import styled from "styled-components";
 import { Table, TD, TH } from "./utils";
 import { SelectVersions } from "./SelectVersions";
-import { TestableFFT, useVersions, VersionStates } from "./VersionContext";
+import { useVersions, VersionStates } from "./VersionContext";
 import makeTestData from "./makeTestData";
 import ParameterTable from "./ParameterTable";
 import useSlider from "./useSlider";
+import { FFT } from "fft-api/dst";
 
 type Result = {
   out: Complex[],
@@ -42,7 +43,7 @@ async function runFFTs(
     if (version.status !== "resolved" || !testVersions[name]) continue;
     try {
       const factory = version.value;
-      const fft: TestableFFT = factory(n);
+      const fft: FFT = factory(n);
       data.map((v, i) => fft.setInput(i, v));
       fft.run(1);
       // // just to see how exceptions and diffs are handled:

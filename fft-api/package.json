@@ -1,0 +1,17 @@
+{
+  "name": "fft-api",
+  "version": "1.0.0",
+  "description": "Common API for various FFT implementations",
+  "scripts": {
+    "build": "tsc -p .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Heribert Schütz",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "complex": "file:../complex"
+  }
+}

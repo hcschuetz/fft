@@ -3,10 +3,11 @@ import styled from "styled-components";
 import { Table, TD, TH } from "./utils";
 import { SelectVersions } from "./SelectVersions";
 import makeTestData from "./makeTestData";
-import { TestableFFT, useVersions, VersionStates } from "./VersionContext";
+import { useVersions, VersionStates } from "./VersionContext";
 import sleep from "./sleep";
 import ParameterTable from "./ParameterTable";
 import useSlider, { useBooleanSlider } from "./useSlider";
+import { FFT } from "fft-api/dst";
 
 const blockSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
 
@@ -55,7 +56,7 @@ async function compute({
         .map((name) => [name, new Array(nBlocks).fill("") as benchmarkState[]])
       );
 
-    const runBlock = async (name: string, fft: TestableFFT, times: benchmarkState[], i: number) => {
+    const runBlock = async (name: string, fft: FFT, times: benchmarkState[], i: number) => {
       checkStop("A");
       if (pause > 0) {
         times[i] = "pause";
@@ -81,13 +82,13 @@ async function compute({
     }
     const versionEntries =
       Object.entries(versions)
-      .flatMap(([name, version]): {name: string, fft: TestableFFT, times: benchmarkState[]}[] => {
+      .flatMap(([name, version]): {name: string, fft: FFT, times: benchmarkState[]}[] => {
         if (version.status !== "resolved" || !testVersions[name]) {
           return [];
         }
         const times = results[name];
         const factory = version.value;
-        const fft: TestableFFT = factory(n);
+        const fft: FFT = factory(n);
         data.forEach((v, i) => fft.setInput(i, v));
         return [{ name, fft, times }];
       });

@@ -1,33 +1,16 @@
 import { createContext, FC, useContext, useEffect, useState } from "react";
-import { Complex } from "complex/dst/Complex";
 import mapObject from "./mapObject";
+import { FFTFactory } from "fft-api/dst";
 
-/**
- * A uniform API for FFT implementations hiding the representation
- * of input and output arrays.
- * For performance tests the `run` method can be called multiple times on the
- * same input and output.  This way no time is spent on data conversion to a
- * particular format used by the underlying implementation.
- */
-export type TestableFFT = {
-  readonly size: number,
-  setInput(i: number, value: Complex): void,
-  run(direction?: number): void,
-  getOutput(i: number): Complex,
-}
 
-/**
- * An implementation of this type essentially represents an FFT version.
- */
-export type TestableFFTFactory = (size: number) => TestableFFT;
-export type PromisedVersions = Record<string, Promise<TestableFFTFactory>>;
+export type PromisedVersions = Record<string, Promise<FFTFactory>>;
 
 export type PromiseState<T,> =
   { status: "pending" }
 | { status: "resolved", value: T }
 | { status: "rejected", reason: any };
 
-export type VersionState = PromiseState<TestableFFTFactory>;
+export type VersionState = PromiseState<FFTFactory>;
 export type VersionStates = Record<string, VersionState>;
 
 const VersionContext = createContext<VersionStates>({});
