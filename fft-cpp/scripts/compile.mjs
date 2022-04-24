@@ -156,9 +156,10 @@ Comma-separated components of TECH should be:
 const { TECH, VERSIONS } = process.env
 
 const versions = VERSIONS ? VERSIONS.split(",") :
-  (await readdir("src"))
-  .filter(name => name.match(/fft.+\.c\+\+/))
-  .map(name => name.substring(0, name.length - 4));
+  (await readdir("src")).flatMap(name => {
+    const match = name.match(/^(fft.+)\.c\+\+$/);
+    return match ? [match[1]] : [];
+  });
 
 const techs = (TECH ?? "NATIVE,JS,WASM").split(",").map(t => t.toUpperCase());
 
