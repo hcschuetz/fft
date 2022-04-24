@@ -9,6 +9,7 @@ import fft44 from "../dst-js/fft44";
 import fft47 from "../dst-js/fft47";
 import fft47pointers from "../dst-js/fft47pointers";
 import fft48 from "../dst-js/fft48";
+import fft60 from "../dst-js/fft60";
 import fft99b from "../dst-js/fft99b";
 import fft99c from "../dst-js/fft99c";
 import fftKiss from "../dst-js/fftKiss";
@@ -22,6 +23,7 @@ const instanceFactories: Record<string, () => Promise<Instance>> = {
   fft47,
   fft47pointers,
   fft48,
+  fft60,
   fft99b,
   fft99c,
   fftKiss,

@@ -8,6 +8,7 @@ import fft44 from "../dst-wasm/fft44-wasm";
 import fft47 from "../dst-wasm/fft47-wasm";
 import fft47pointers from "../dst-wasm/fft47pointers-wasm";
 import fft48 from "../dst-wasm/fft48-wasm";
+import fft60 from "../dst-wasm/fft60-wasm";
 import fft99b from "../dst-wasm/fft99b-wasm";
 import fft99c from "../dst-wasm/fft99c-wasm";
 import fftKiss from "../dst-wasm/fftKiss-wasm";
@@ -21,6 +22,7 @@ export const base64_versions: Record<string, string> = {
   fft47,
   fft47pointers,
   fft48,
+  fft60,
   fft99b,
   fft99c,
   fftKiss,
