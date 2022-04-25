@@ -1,38 +1,41 @@
 import { performance } from "perf_hooks";
-import { ComplexArray, FFT, randomComplex, setComplex } from "../../ts/fft-instance-utils";
+import { randomComplex } from "complex/dst/Complex";
+import { FFTFactory } from "fft-api/dst";
+import { versions as versionsJS   } from "../../ts/api-js";
+import { versions as versionsWASM } from "../../ts/api-wasm";
 
 async function sleep(milliseconds: number) {
   await new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-const [, , fft] = process.argv;
+const [, , tech, versionName] = process.argv;
 
-const { SIZES, BLOCK_SIZE, N_BLOCKS, PAUSE } = process.env
+const { SIZES, BLOCK_SIZE, N_BLOCKS, PAUSE } = process.env;
 const sizes = (SIZES ?? "4,8,512,2048").split(",").map(Number);
 const blockSize = Number(BLOCK_SIZE ?? "2000");
 const nBlocks = Number(N_BLOCKS ?? "2");
 const pause = Number(PAUSE ?? "0");
 
 async function main() {
-  const factory = (await import(fft)).default;
-  const instance = await factory();
+  const versions: Record<string, () => Promise<FFTFactory>> =
+    tech === "JS"   ? versionsJS   :
+    tech === "WASM" ? versionsWASM :
+    {};
+  const factory = await versions[versionName]();
   for (const n of sizes) {
     console.log(`---- n = ${n} ----`);
 
-    const fft = new FFT(instance, n);
+    const fft = factory(n);
 
-    const a0 = new ComplexArray(instance, n);
     for (let i = 0; i < n; i++) {
-      setComplex(a0, i, randomComplex());
+      fft.setInput(i, randomComplex());
     }
-
-    const a1 = new ComplexArray(instance, n);
 
     for (let b = 0; b < nBlocks; b++) {
       await sleep(pause * 1000);
       const start = performance.now();
       for (let i = 0; i < blockSize; i++) {
-        fft.run(a0, a1);
+        fft.run();
       }
       const end = performance.now();
       const time_per_run_in_s = (end - start) * 1e-3 / blockSize

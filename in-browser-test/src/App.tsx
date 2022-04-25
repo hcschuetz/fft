@@ -14,8 +14,8 @@ import { versions as wasmVersions } from "fft-cpp/dst/api-wasm";
 
 const versions: PromisedVersions = {
   ...prefixKeys("TJ\u00a0", mapObject(tsVersions, asPromise)),
-  ...prefixKeys("CJ\u00a0", cppVersions),
-  ...prefixKeys("CW\u00a0", wasmVersions),
+  ...prefixKeys("CJ\u00a0", mapObject(cppVersions, func => func())),
+  ...prefixKeys("CW\u00a0", mapObject(wasmVersions, func => func())),
 };
 
 function App() {

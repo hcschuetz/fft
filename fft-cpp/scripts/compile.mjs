@@ -129,7 +129,8 @@ const ${version}_wasm_base64 = ${"`"}
 ${wasmCode.toString("base64").match(/.{1,72}/g).join("\n")}
 ${"`"};
 
-export default ${version}_wasm_base64;
+//export default ${version}_wasm_base64;
+module.exports = ${version}_wasm_base64;
 `);
     await writeFile(`${outFileBase}-wasm.d.ts`, `
 declare const ${version}_wasm_base64: string;

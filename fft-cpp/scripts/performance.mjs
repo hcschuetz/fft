@@ -11,16 +11,8 @@ async function runTechForVersion({version, tech}) {
       await spawnCommand(`test/bin/perf_${version}`);
       break;
     case "JS":
-      await spawnCommand(ts_node, [
-        "test/ts/perf.ts",
-        `../../dst-js/${version}.js`,
-      ]);
-      break;
     case "WASM":
-      await spawnCommand(ts_node, [
-        "test/ts/perf-wasm.ts",
-        `dst-wasm/${version}.wasm`,
-      ]);
+      await spawnCommand(ts_node, ["test/ts/perf.ts", tech, version]);
       break;
     default:
       // TODO such explanations should be written upon argument --help
@@ -40,7 +32,7 @@ const { VERSIONS, TECH } = process.env;
 
 const versions = VERSIONS ? VERSIONS.split(",") :
   (await readdir("src"))
-  .filter(name => name.match(/fft.+\.c\+\+/))
+  .filter(name => name.match(/^fft.+\.c\+\+$/))
   .map(name => name.substring(0, name.length - 4));
 
 const techs = (TECH ?? "NATIVE,JS,WASM").split(",").map(t => t.toUpperCase());

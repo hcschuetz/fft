@@ -4,7 +4,7 @@
   "scripts": {
     "build-c++": "node scripts/compile.mjs",
     "build-ts": "tsc -p .",
-    "build": "npm run build-ts && npm run build-c++",
+    "build": "npm run build-c++ && npm run build-ts",
     "test": "jest",
     "perf": "node scripts/performance.mjs",
     "clean": "node scripts/clean.mjs"

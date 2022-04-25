@@ -1,4 +1,4 @@
-import { abs2, Complex, minus, timesScalar } from "complex/dst/Complex";
+import { Complex } from "complex/dst/Complex";
 
 const scalarType = "double";
 const scalarSize = 8;
@@ -17,7 +17,7 @@ export type Instance = {
 // --------------------------------------------------------------------------
 
 // Some utilities similar to module "complex/dst/ComplexArray",
-// but using "pseudo-native" memory of an instance
+// but using memory allocated by an instance
 
 export class ComplexArray {
   p: number;
@@ -45,46 +45,3 @@ export const setComplex = (a: ComplexArray, i: number, {re, im}: Complex): void 
   a.instance.setValue(a.p + i * complexSize             , re, scalarType);
   a.instance.setValue(a.p + i * complexSize + scalarSize, im, scalarType);
 };
-
-export const getDist = (a: ComplexArray, b: ComplexArray, scale_a: number = 1, scale_b: number = 1) => {
-  const n = complexArrayLength(a);
-  let sum = 0;
-  for (let i = 0; i < n; i++) {
-    sum += abs2(minus(
-      timesScalar(getComplex(a, i), scale_a),
-      timesScalar(getComplex(b, i), scale_b),
-    ));
-  }
-  return Math.sqrt(sum / n);
-}
-
-const randomScalar = () => Math.random();
-
-export const randomComplex = () => ({
-  re: randomScalar(),
-  im: randomScalar(),
-});
-
-// --------------------------------------------------------------------------
-
-export class FFT {
-  p: number;
-
-  constructor(
-    public instance: Instance,
-    public n: number,
-  ) {
-    this.p = instance._prepare_fft(n);
-  }
-
-  dispose(): void {
-    this.instance._delete_fft(this.p);
-  }
-
-  run(f: ComplexArray, out: ComplexArray, direction: number = 1): void {
-    if (f.instance !== this.instance || out.instance !== this.instance) {
-      throw new Error("Cannot mix instances in FFT.run()");
-    }
-    this.instance._run_fft(this.p, f.p, out.p, direction);
-  } 
-}

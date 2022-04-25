@@ -1,4 +1,4 @@
-import { randomComplex } from "fft-cpp/dst/fft-instance-utils";
+import { randomComplex } from "complex/dst/Complex";
 import filledArray from "./filledArray";
 
 const makeTestData = (n: number) => filledArray(n, () => randomComplex());

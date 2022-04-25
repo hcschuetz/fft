@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import { abs2, minus, timesScalar } from "complex/dst/Complex";
 import { ComplexArray, complexArrayLength, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray";
-import { versions as allVersions } from "./info";
+import { versions } from "../../ts/api-js";
 
 const indices = (n: number) => new Array(n).fill(undefined).map((x, i) => i);
 
@@ -62,7 +62,7 @@ export const getDist = (a: ComplexArray, b: ComplexArray, scale_a: number = 1, s
 const { TECH, SIZES, VERSIONS } = process.env;
 const techs = (TECH ?? "JS,WASM,NATIVE").split(",").map(t => t.toUpperCase());
 const sizes = (SIZES ?? "1,2,4,8,16,32,64,2048").split(",").map(Number);
-const versions: string[] = VERSIONS ? VERSIONS.split(",") : allVersions;
+const versionNames: string[] = VERSIONS ? VERSIONS.split(",") : Object.keys(versions);
 
 test("dummy test to make jest happy", () => expect(0).toBeFalsy());
 
@@ -71,9 +71,9 @@ for (const tech of techs) {
     describe(`Running as NATIVE code`, () => {
       const binDir = `test/bin/`;
       const fft01_binary = binDir + "test_fft01";
-      for (const version of versions) {
-        const binary = binDir + "test_" + version;
-        describe(`Tests for ${version}`, () => {
+      for (const versionName of versionNames) {
+        const binary = binDir + "test_" + versionName;
+        describe(`Tests for ${versionName}`, () => {
           for (const n of sizes) {
             describe(`Tests for size ${n}`, () => {
               const a0 = makeComplexArray(n);
@@ -85,7 +85,7 @@ for (const tech of techs) {
               // requires some support in the native test code.
               // (../native/test.{c,c++})
 
-              test(`${version} should produce approximately the same results as fft01 (n = ${n})`, async () => {
+              test(`${versionName} should produce approximately the same results as fft01 (n = ${n})`, async () => {
                 await fft_native(fft01_binary, a0, a1, 1);
                 await fft_native(binary      , a0, a2, 1);
 
@@ -93,7 +93,7 @@ for (const tech of techs) {
                 expect(getDist(a2, a1, scale, scale)).toBeCloseTo(0, 13);
               });
 
-              test(`inverse ${version} should produce approximately the same results as inverse fft01 (n = ${n})`, async () => {
+              test(`inverse ${versionName} should produce approximately the same results as inverse fft01 (n = ${n})`, async () => {
                 await fft_native(fft01_binary, a0, a1, -1);
                 await fft_native(binary      , a0, a2, -1);
 
@@ -101,7 +101,7 @@ for (const tech of techs) {
                 expect(getDist(a2, a1, scale, scale)).toBeCloseTo(0, 13);
               });
 
-              test(`IFFT(FFT(input))/n should be approximately equal to input (${version}, n = ${n})`, async () => {
+              test(`IFFT(FFT(input))/n should be approximately equal to input (${versionName}, n = ${n})`, async () => {
                 await fft_native(binary, a0, a1,  1);
                 await fft_native(binary, a1, a2, -1);
                 expect(getDist(a2, a0, 1/n, 1)).toBeCloseTo(0, 13);  

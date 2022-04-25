@@ -17,10 +17,13 @@ import { Complex } from "complex/dst/Complex";
  * For performance measurements call `run` several times.
  */
 export interface FFT {
-  readonly size: number,
-  setInput(index: number, value: Complex): void,
-  run(direction?: number): void,
-  getOutput(index: number): Complex,
+  readonly size: number;
+  setInput(index: number, value: Complex): void;
+  /** @deprecated use only for testing */
+  getInput(index: number): Complex;
+  run(direction?: number): void;
+  getOutput(index: number): Complex;
+
 }
 
 /**

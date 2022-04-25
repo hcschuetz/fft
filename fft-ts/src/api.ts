@@ -85,6 +85,9 @@ class FFT_API implements FFT {
   setInput(index: number, value: Complex): void {
     setComplex(this.input, index, value);
   }
+  getInput(index: number): Complex {
+    return getComplex(this.input, index);
+  }
   run(direction?: number): void {
     this.fftRun(this.input, this.output, direction);
   }

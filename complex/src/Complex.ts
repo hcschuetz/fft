@@ -40,6 +40,11 @@ export const expi = (x: number): Complex => ({
   im: Math.sin(x),
 });
 
+export const randomComplex = (): Complex => ({
+  re: Math.random(),
+  im: Math.random(),
+});
+
 export const zero: Complex = { re: 0, im: 0 };
 export const one: Complex = { re: 1, im: 0 };
 export const one_i: Complex = { re: 0, im: 1 };
