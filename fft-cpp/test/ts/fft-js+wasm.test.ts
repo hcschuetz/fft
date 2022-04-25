@@ -52,7 +52,7 @@ function testTech(tech: string, versions: Record<string, () => Promise<FFTFactor
 
               for (let i = 0; i < n; i++) {
                 // This is the place where the otherwise deprecated method
-                // FFT.getInput(...) is used:
+                // FFT.getInput(...) is needed:
                 expect(fft.getInput(i)).toEqual(getComplex(inputBak, i));
               }
             });
