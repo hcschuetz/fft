@@ -13,9 +13,12 @@ const decodeBase64 = (base64String: string): Uint8Array => {
   const restSize = input.length % 4;
   const fullBlocksLimit = input.length - restSize;
 
-  const output = new Uint8Array(3 / 4 * fullBlocksLimit + rests[restSize]);
-  let o = 0;
-  for (let i = 0; i < fullBlocksLimit;) {
+  const outputFullBlocksLimit = 3 / 4 * fullBlocksLimit;
+  const outputRestSize = rests[restSize];
+  const output = new Uint8Array(outputFullBlocksLimit + outputRestSize);
+
+  let i = 0, o = 0;
+  while (i < fullBlocksLimit) {
     const blockValue =
       (values[input[i++]] << 18) |
       (values[input[i++]] << 12) |
@@ -25,24 +28,16 @@ const decodeBase64 = (base64String: string): Uint8Array => {
     output[o++] = blockValue >>  8;
     output[o++] = blockValue >>  0;
   }
-  switch (restSize) {
-    case 0: break;
-    case 1: throw new Error("unexpected base64 length");
-    case 2: {
-      output[o++] =
-        (values[input[fullBlocksLimit + 0]] << 2) |
-        (values[input[fullBlocksLimit + 1]] >> 4);
-      break;
-    }
-    case 3: {
-      output[o++] =
-        (values[input[fullBlocksLimit + 0]] << 2) |
-        (values[input[fullBlocksLimit + 1]] >> 4);
-      output[o++] =
+  switch (outputRestSize) {
+    case 2:
+      output[outputFullBlocksLimit + 1] =
         (values[input[fullBlocksLimit + 1]] << 4) |
         (values[input[fullBlocksLimit + 2]] >> 2);
-      break;
-    }
+      // fall through
+    case 1:
+      output[outputFullBlocksLimit] =
+        (values[input[fullBlocksLimit + 0]] << 2) |
+        (values[input[fullBlocksLimit + 1]] >> 4);
   }
   return output;
 };
