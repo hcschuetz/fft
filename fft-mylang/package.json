@@ -11,7 +11,8 @@
     "build": "npm run build-parser && npm run build-ts && npm run build-compile",
     "build-parser": "node scripts/build-parser.js",
     "build-ts": "tsc -p .",
-    "build-compile": "node dst/compile.js"
+    "build-compile": "node dst/compile.js",
+    "start": "node dst/run.js"
   },
   "type": "module",
   "devDependencies": {
@@ -20,5 +21,9 @@
     "nodemon": "^2.0.15",
     "peggy": "^1.2.0",
     "typescript": "^4.6.3"
+  },
+  "dependencies": {
+    "complex": "file:../complex",
+    "fft-api": "file:../fft-api"
   }
 }

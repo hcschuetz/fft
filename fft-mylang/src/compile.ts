@@ -1,9 +1,10 @@
 import B from "./tweaked-binaryen.js";
 import { parse } from './generated/parser.js';
-import { readFileSync, writeFileSync } from "fs";
+import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { CompoundElement, Expression, Location, Position, Statement, Type } from "./AST";
 
-const filename = "mylang/prog-mylang.c++";
+const version = "fft60"
+const filename = `mylang/${version}-mylang.c++`;
 const mylangCode = readFileSync(filename, "utf-8");
 
 function getAST(): CompoundElement[] | null {
@@ -555,8 +556,10 @@ const positionText = (pos: Position): string =>
 
 async function main() {
   const ast = getAST();
-  if (!ast) return;
-
+  if (!ast) {
+    console.error("parsing failed");
+    process.exit(1);
+  }
   const M = new B.Module();
   M.setMemory(0, 1 << 16); // TODO what is a reasonable maximum?
   M.addMemoryImport("0", "env", "memory");
@@ -584,74 +587,24 @@ async function main() {
   M.addFunctionExport("ifft", "ifft");
   // console.log(M.emitText());
   const valid = M.validate();
-  console.log("validation:", valid);
-  if (valid) {
-    M.optimize();
-    // console.log("optimized:");
-    // console.log(M.emitText());
-    const binary = M.emitBinary();
-    // console.log("binary size:", binary.length);
-
-    
-    const n = 1 << 5;
-    const quarterN = n >>> 2;
-
-    const memorySizeInBytes = 41 * n;
-    const pageSize = 64 * 1024;  // The WebAssembly page size is 64 KiB.
-    const memorySizeInPages = Math.ceil(memorySizeInBytes / pageSize);
-    console.log("pages:", memorySizeInPages)
-    const memory = new WebAssembly.Memory({initial: memorySizeInPages, maximum: memorySizeInPages});
-
-    const inputStart = 0;
-    const input = new Float64Array(memory.buffer, inputStart, 2*n);
-    const outputStart = inputStart + input.byteLength;
-    const output = new Float64Array(memory.buffer, outputStart, 2*n);
-    const cosinesStart = outputStart + output.byteLength;
-    const cosines = new Float64Array(memory.buffer, cosinesStart, n);
-    const shuffledStart = cosinesStart + cosines.byteLength;
-    const shuffled = new Int32Array(memory.buffer, shuffledStart, quarterN);
-    const dataEnd = shuffledStart + shuffled.byteLength;
-    if (dataEnd !== memorySizeInBytes) {
-      console.error("unexpected data size", dataEnd, "expected:", memorySizeInBytes);
-    }
-
-    for (let i = 0; i < quarterN; i++) {
-      shuffled[i] = inputStart;
-    }
-    for (let len = quarterN, fStride = 1; len > 1; len >>>= 1, fStride <<= 1) {
-      const halfLen = len >>> 1;
-      for (let out_offset = 0; out_offset < quarterN; out_offset += len) {
-        const limit = out_offset + len;
-        for (let out_offset_odd = out_offset + halfLen; out_offset_odd < limit; out_offset_odd++) {
-          shuffled[out_offset_odd] += fStride * 16;
-        }
-      }
-    }
-
-    const step = 2 * Math.PI / n;
-    for (let i = 0; i < n; i++) {
-      cosines[i] = Math.cos(i * step);
-    }
-
-    const {instance} = await WebAssembly.instantiate(binary, {
-      env: {
-        memory,
-      },
-    });
-    const {exports} = instance;
-    const {fft, ifft} = exports;
-
-    for (let i = 0; i < n; i++) {
-      input[2*i + 0] = 2*i+1; // Math.random();
-      input[2*i + 1] = 2*i+2; // Math.random();
-    }
-
-    (fft as any)(n, shuffledStart, cosinesStart, outputStart);
-    input.set(output);
-    (ifft as any)(n, shuffledStart, cosinesStart, outputStart);
-
-    console.log(Array.from(output).map(x => Number.parseFloat((x/n).toFixed(10))));
+  if (!valid) {
+    console.error("Validation failed.");
+    process.exit(1);
   }
+  M.optimize();
+  // console.log("optimized:");
+  // console.log(M.emitText());
+  const binary = M.emitBinary();
+  const wasmCode = Buffer.from(binary);
+  mkdirSync("dst-wasm", {recursive: true});
+  writeFileSync("dst-wasm/" + version + "-wasm.js", `
+const ${version}_wasm_base64 = ${"`"}
+${wasmCode.toString("base64").match(/.{1,72}/g)!.join("\n")}
+${"`"};
+
+export default ${version}_wasm_base64;
+// module.exports = ${version}_wasm_base64;
+`);
 }
 
 main();

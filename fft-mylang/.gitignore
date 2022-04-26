@@ -1,3 +1,4 @@
 /node_modules/
 /src/generated/
 /dst/
+/dst-*/
