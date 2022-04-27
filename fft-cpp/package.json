@@ -9,6 +9,7 @@
     "perf": "node scripts/performance.mjs",
     "clean": "node scripts/clean.mjs"
   },
+  "type": "commonjs",
   "author": "Heribert Schütz",
   "license": "MIT",
   "devDependencies": {

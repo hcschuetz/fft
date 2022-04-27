@@ -1,118 +1,15 @@
-import { FC, Fragment, MutableRefObject, useRef, useState } from "react";
+import { FC, Fragment, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Table, TD, TH } from "./utils";
 import { SelectVersions } from "./SelectVersions";
-import makeTestData from "./makeTestData";
-import { useVersions, VersionStates } from "./VersionContext";
-import sleep from "./sleep";
+import { useVersions } from "./VersionContext";
 import ParameterTable from "./ParameterTable";
 import useSlider, { useBooleanSlider } from "./useSlider";
-import { FFT } from "fft-api/dst";
+import { BenchmarkState, ComputeArgs, WorkerMessage } from "./benchmark-worker-interface";
 
 const blockSizes = [100, 200, 500, 1000, 2000, 5000, 10000];
 
-type benchmarkState = number | "" | "pause" | "run";
-
-type Results = Record<string, benchmarkState[]>;
-
-type ComputeArgs = {
-  thisCallCount: number,
-  callCount: MutableRefObject<number>,
-  versions: VersionStates,
-  testVersions: Record<string, boolean>,
-  nBlocks: number,
-  pause: number,
-  blockSize: number,
-  n: number,
-  backward: boolean,
-  versionMajor: boolean,
-  setResults: (value: Results) => void,
-};
-
-async function compute({
-  thisCallCount, callCount,
-  versions, testVersions,
-  nBlocks, pause, blockSize, n, backward, versionMajor,
-  setResults,
-}: ComputeArgs): Promise<void> {
-  function log(...args: any[]) {
-    console.log(`[${thisCallCount}|${callCount.current}]`, ...args);
-  }
-
-  function checkStop(tag: string) {
-    if (callCount.current !== thisCallCount) {
-      // eslint-disable-next-line no-throw-literal
-      throw `==== stopping (${tag})`;
-    }
-  }
-
-  try {
-    log("==== start");
-    const data = makeTestData(n);
-    const results: Results =
-      Object.fromEntries(
-        Object.keys(versions)
-        .filter((name) => testVersions[name])
-        .map((name) => [name, new Array(nBlocks).fill("") as benchmarkState[]])
-      );
-
-    const runBlock = async (name: string, fft: FFT, times: benchmarkState[], i: number) => {
-      checkStop("A");
-      if (pause > 0) {
-        times[i] = "pause";
-        setResults({...results});
-        log("begin pause", name, i);
-        await sleep(pause * 1e3);
-        log("end pause", name, i);
-        checkStop("B");
-      }
-      const start = performance.now();
-      log("run", name, i);
-      times[i] = "run";
-      setResults({...results});
-      await sleep(0);
-      for (let j = 0; j < blockSize; j++) {
-        fft.run(1);
-      }
-      checkStop("C");
-      const time = (performance.now() - start) * 1e-3 / blockSize;
-      times[i] = time;
-      setResults({...results});
-      await sleep(0);
-    }
-    const versionEntries =
-      Object.entries(versions)
-      .flatMap(([name, version]): {name: string, fft: FFT, times: benchmarkState[]}[] => {
-        if (version.status !== "resolved" || !testVersions[name]) {
-          return [];
-        }
-        const times = results[name];
-        const factory = version.value;
-        const fft: FFT = factory(n);
-        data.forEach((v, i) => fft.setInput(i, v));
-        return [{ name, fft, times }];
-      });
-    if (backward) {
-      versionEntries.reverse();
-    }
-    if (versionMajor) {
-      for (const { name, fft, times } of versionEntries) {
-        for (let i = 0; i < nBlocks; i++) {
-          await runBlock(name, fft, times, i);
-        }
-      }
-    } else {
-      for (let i = 0; i < nBlocks; i++) {
-        for (const { name, fft, times } of versionEntries) {
-          await runBlock(name, fft, times, i);
-        }
-      }
-    }
-    log("==== completed");
-  } catch (e) {
-    log(e);
-  }
-}
+type Results = Record<string, BenchmarkState[]>;
 
 const BenchmarkField = styled(TD)`
   height: 2.8ex;
@@ -136,7 +33,7 @@ const visualizationModesBetter = [
   "🠔 better",
 ];
 
-const getRange = (resultValues: benchmarkState[][]) => {
+const getRange = (resultValues: BenchmarkState[][]) => {
   const allTimes: number[] =
     resultValues.flatMap(states =>
       states.flatMap(state =>
@@ -266,7 +163,7 @@ const BlockVisualization: FC<{
 }
 
 const Median: FC<{
-  idx: number, slowest: number, fastest: number, times: benchmarkState[],
+  idx: number, slowest: number, fastest: number, times: BenchmarkState[],
 }> = ({
   idx, slowest, fastest, times,
 }) => {
@@ -330,8 +227,61 @@ const Benchmark: FC = () => {
 
   const [results, setResults] = useState<Results>({});
 
-  const callCount = useRef(0);
+  const makeWorker = () => 
+    new Worker(new URL("./benchmark-worker", import.meta.url));
+  const [worker, setWorker] = useState(makeWorker);
+  useEffect(() => () => worker.terminate(), [worker]);
 
+  const [busy, setBusy] = useState(false);
+
+  function replaceWorkerIfBusy() {
+    if (busy) {
+      const newWorker = makeWorker();
+      setWorker(newWorker);
+      setBusy(false);
+      return newWorker;
+    } else {
+      return worker;
+    }
+  }
+
+  async function compute(): Promise<void> {
+    const worker = replaceWorkerIfBusy();
+    const testVersionList: string[] =
+      Object.entries(versions).flatMap(([name, version]) =>
+        version.status === "resolved" && testVersions[name] ? [name] : []
+      );
+  
+    const results: Results = Object.fromEntries(
+      testVersionList.map(name => [name, new Array(nBlocks).fill("") as BenchmarkState[]])
+    );
+    setResults(results);
+  
+    if (backward) {
+      testVersionList.reverse();
+    }
+
+    worker.onmessage = ({data}: {data: WorkerMessage}) => {
+      switch (data.type) {
+        case "value": {
+          const { version, blockNo, value } = data;
+          results[version][blockNo] = value;
+          setResults({...results});
+          break;
+        }
+        case "done": {
+          setBusy(false);
+          break;
+        }
+      }
+    };
+
+    const message: ComputeArgs =
+      {testVersionList, nBlocks, pause, blockSize, n, versionMajor};
+    setBusy(true);
+    worker.postMessage(message);
+  }
+  
   return (
     <>
       <p>Select the versions to benchmark:</p>
@@ -348,17 +298,15 @@ const Benchmark: FC = () => {
       <p>
         Execute: {}
         <button
-          onClick={() => compute({
-            thisCallCount: ++callCount.current, callCount,
-            versions, testVersions,
-            nBlocks, pause, blockSize, n, backward, versionMajor,
-            setResults,
-          })}
+          onClick={compute}
           disabled={!Object.values(testVersions).some(value => value)}
         >
           Run Benchmarks
         </button>
-        {} <button onClick={() => ++callCount.current}>Stop Benchmarks</button>
+        {} <button
+          onClick={() => { replaceWorkerIfBusy(); }}
+          disabled={!busy}
+        >Stop Benchmarks</button>
       </p>
       <ResultsTable {...{results}}/>
     </>
