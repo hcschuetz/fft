@@ -19,9 +19,11 @@ function App() {
       <Benchmark/>
       <h2>User Agent</h2>
       <p>
-        This page is currently being displayed by the following browser:
+        Your browser identifies as
         <br/>
         <code><UserAgent/></code>
+        <br/>
+        where the highlighted part is probably the browser's actual name and version.
       </p>
     </VersionProvider>
   );
