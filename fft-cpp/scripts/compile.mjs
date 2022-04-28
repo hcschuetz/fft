@@ -51,7 +51,6 @@ async function compileNativeTest() {
     "-c", "-O4",
     "-o", perf_o,
     "-I", "src",
-    "-std=c++17",
     "test/native/perf.c++",
   ]);
 }
@@ -62,12 +61,14 @@ async function compileNative({version, outDir}) {
   const fft_code_o = `${baseName}.o`;
   const c_bindings_o = `${baseName}_c_bindings.o`;
   await spawnCommand("g++", [
-    "-c", "-std=c++17", "-O4",
+    "-c",
+    "-O4",
     "-o", fft_code_o,
     `src/${version}.c++`,
   ]);
   await spawnCommand("g++", [
-    "-c", "-std=c++17", "-O4",
+    "-c",
+    "-O4",
     "-o", c_bindings_o,
     "src/c_bindings.c++",
   ]);
@@ -95,7 +96,6 @@ async function compile({version, wasm, outDir}) {
 
   await spawnCommand(emcc, [
     "-o", `${outFileBase}.${wasm ? "wasm" : "js"}`,
-    "-std=c++17",
     "--memory-init-file", "0",
     "-s", "MODULARIZE=1",
     // In the JS case compiler output for the web environment actually does

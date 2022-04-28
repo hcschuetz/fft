@@ -79,7 +79,7 @@ public:
   Offset(long i) { o = i * sizeof(T); }
 
   Pointer<T> operator+(Pointer<T> that) const {
-    return Pointer((T*) ((long) that.p + o));
+    return Pointer<T>((T*) ((long) that.p + o));
   }
   void operator++() { o += sizeof(T); }
 
