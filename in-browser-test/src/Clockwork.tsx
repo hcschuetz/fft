@@ -1,6 +1,6 @@
 import { abs2, Complex, expi, times, timesScalar, zero } from "complex/dst/Complex";
 import { FFT, FFTFactory } from "fft-api/dst";
-import { createContext, FC, RefObject, useContext, useEffect, useRef, useState } from "react";
+import { createContext, FC, useContext, useEffect, useRef, useState } from "react";
 import { useAnimationFrames } from "./animationFrames";
 import filledArray from "./filledArray";
 import ParameterTable from "./ParameterTable";
@@ -84,7 +84,7 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
   const [speedLabel, speedSlider, speed] = useSlider({
     id: "speedCW", label: "Speed:",
     min: -40, max: 40,
-    init: 4, transform: x => x/120,
+    init: 6, transform: x => x/120,
   });
   return (
     <RoundsProvider speed={speed}>
