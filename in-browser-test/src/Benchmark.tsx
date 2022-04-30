@@ -190,37 +190,42 @@ const Median: FC<{
   return <line stroke="black" strokeWidth="0.3%" x1={x} y1="0%" x2={x} y2="100%"/>
 }
 
+const NumBlock = styled.div`
+  width: 3em;
+  text-align: right;
+`;
+
 const Benchmark: FC = () => {
   const versions = useVersions();
   const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
 
-  const [n, nRow] = useSlider({
-    id: "nInput", label: "data size:",
+  const [nLabel, nSlider, n] = useSlider({
+    id: "nSlider", label: "Data size:",
     min: 0, max: 16,
     init: 11, transform: x => 1 << x,
   });
-  const [nBlocks, nBlocksRow] = useSlider({
-    id: "nBlocksInput", label: "number of blocks:",
-    min: 1, max: 20,
-    init: 2, transform: x => x,
-  });
-  const [blockSize, blockSizeRow] = useSlider({
-    id: "blockSizeInput", label: "calls per block:",
+  const [blockSizeLabel, blockSizeSlider, blockSize] = useSlider({
+    id: "blockSizeSlider", label: "Calls per block:",
     min: 0, max: blockSizes.length - 1,
     init: 4, transform: x => blockSizes[x],
   });
-  const [pause, pauseRow] = useSlider({
-    id: "pauseInput", label: "pause before each block (seconds):",
+  const [nBlocksLabel, nBlocksSlider, nBlocks] = useSlider({
+    id: "nBlocksSlider", label: "number of blocks:",
+    min: 1, max: 20,
+    init: 2, transform: x => x,
+  });
+  const [pauseLabel, pauseSlider, pause] = useSlider({
+    id: "pauseSlider", label: "pause before each block:",
     min: 0, max: 60,
     init: 0, transform: x => x,
   });
-  const [backward, directionRow] = useBooleanSlider({
-    id: "backwardInput", label: "version execution order:",
+  const [directionLabel, directionSlider, backward] = useBooleanSlider({
+    id: "directionSlider", label: "version execution order:",
     falseLabel: "forward", trueLabel: "backward",
     init: false,
   });
-  const [versionMajor, nestingRow] = useBooleanSlider({
-    id: "majorInput", label: "block execution for versions:",
+  const [nestingLabel, nestingSlider, versionMajor] = useBooleanSlider({
+    id: "nestingSlider", label: "block execution for versions:",
     falseLabel: "a block at a time", trueLabel: "all blocks at once",
     init: false,
   });
@@ -288,12 +293,34 @@ const Benchmark: FC = () => {
       <SelectVersions selected={testVersions} setSelected={setTestVersions}/>
       <p>Choose parameters:</p>
       <ParameterTable>
-        {nRow}
-        {blockSizeRow}
-        {pauseRow}
-        {nBlocksRow}
-        {directionRow}
-        {nestingRow}
+        <tr>
+          <td>{nLabel}</td>
+          <td style={{padding: "0 1em"}}>{nSlider}</td>
+          <td><NumBlock>{n}</NumBlock></td>
+        </tr>
+        <tr>
+          <td>{blockSizeLabel}</td>
+          <td style={{padding: "0 1em"}}>{blockSizeSlider}</td>
+          <td><NumBlock>{blockSize}</NumBlock></td>
+        </tr>
+        <tr>
+          <td>{nBlocksLabel}</td>
+          <td style={{padding: "0 1em"}}>{nBlocksSlider}</td>
+          <td><NumBlock>{nBlocks}</NumBlock></td>
+        </tr>
+        <tr>
+          <td>{pauseLabel}</td>
+          <td style={{padding: "0 1em"}}>{pauseSlider}</td>
+          <td><NumBlock>{pause} s</NumBlock></td>
+        </tr>
+        <tr>
+          <td>{directionLabel}</td>
+          <td colSpan={2} style={{paddingLeft: "1em"}}>{directionSlider}</td>
+        </tr>
+        <tr>
+          <td>{nestingLabel}</td>
+          <td colSpan={2} style={{paddingLeft: "1em"}}>{nestingSlider}</td>
+        </tr>
       </ParameterTable>
       <p>
         Execute: {}

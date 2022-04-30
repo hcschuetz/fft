@@ -20,7 +20,7 @@ export const Clockwork: FC<{}> = () => {
   }
 };
 
-const machineryDisplays = ["nothing", "hands", "hands and circles"];
+const machineryDisplays = ["nothing", "hands", "hands and dials"];
 
 /*
 What else we might make configurable:
@@ -48,48 +48,60 @@ const useConfig = (): Config => useContext(ConfigContext)!;
 const size = 1 << 9;
 
 const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
-  const [nHands, nHandsRow] = useSlider({
-    id: "nHandsSlider", label: "Number of \"clock hands\"",
+  const [nHandsLabel, nHandsSlider, nHands] = useSlider({
+    id: "nHandsCW", label: "Number of \"clock hands\":",
     min: 0, max: size - 1,
     init: 100, transform: x => x,
   });
   const [showOrig, setShowOrig] = useState(false);
   // TODO: provide space for the output of the following slider
-  const [machineryDisplay, machineryDisplayRow] = useSlider({
-    id: "machinerySlider", label: "Display machinery",
+  const [machineryDisplayLabel, machineryDisplaySlider, machineryDisplay] = useSlider({
+    id: "machineryDisplayCW", label: "Display machinery:",
     min: 0, max: machineryDisplays.length - 1,
     init: 2, transform: x => x,
   });
   const [showTrace, setShowTrace] = useState(true);
-  const [speed, speedRow] = useSlider({
-    id: "speedSlider", label: "Speed",
+  const [speedLabel, speedSlider, speed] = useSlider({
+    id: "speedCW", label: "Speed:",
     min: -0.3, max: 0.3, step: 0.01,
     init: 0.05, transform: x => x,
   });
   return (
     <>
       <ParameterTable>
-        {nHandsRow}
         <tr>
-          <td>Display original shape</td>
-          <td>
-            <input type="checkbox" style={{marginLeft: "10px"}}
+          <td>{nHandsLabel}</td>
+          <td style={{padding: "0 1em"}}>{nHandsSlider}</td>
+          <td>{nHands}</td>
+        </tr>
+        <tr>
+          <td><label htmlFor="showOrigCW">Display original shape</label></td>
+          <td style={{paddingLeft: "1em"}}>
+            <input id="showOrigCW" type="checkbox"
               checked={showOrig}
               onChange={ev => setShowOrig(ev.target.checked)}
             />
           </td>
         </tr>
-        {machineryDisplayRow}
         <tr>
-          <td>Display trace</td>
-          <td>
-            <input type="checkbox" style={{marginLeft: "10px"}}
+          <td>{machineryDisplayLabel}</td>
+          <td style={{padding: "0 1em"}}>{machineryDisplaySlider}</td>
+          <td style={{width: "7.5em"}}>{machineryDisplays[machineryDisplay]}</td>
+        </tr>
+        <tr>
+          <td><label htmlFor="displayCW">Display trace:</label></td>
+          <td style={{paddingLeft: "1em"}}>
+            <input id="displayCW" type="checkbox"
               checked={showTrace}
               onChange={ev => setShowTrace(ev.target.checked)}
             />
           </td>
         </tr>
-        {speedRow}
+        <tr>
+          <td>{speedLabel}</td>
+          <td style={{padding: "0 1em"}}>{speedSlider}</td>
+          <td style={{width: "13em"}}>{speed} rounds per second<br/>({(1/speed).toFixed(2)} seconds per round)</td>
+        </tr>
       </ParameterTable>
       <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace, speed}}>
         <ClockworkGraphics fftFactory={fftFactory}/>

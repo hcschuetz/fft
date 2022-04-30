@@ -205,8 +205,8 @@ const Legend: FC<{}> = () => (
 const Tests: FC = () => {
   const versions = useVersions();
   const [testVersions, setTestVersions] = useState<Record<string, boolean>>({});
-  const [n, nRow] = useSlider({
-    id: "testSizeInput", label: "data size:",
+  const [nLabel, nSlider, n] = useSlider({
+    id: "nSlider_Test", label: "Data size:",
     min: 0, max: 16,
     init: 11, transform: x => 1 << x,
   });
@@ -217,7 +217,11 @@ const Tests: FC = () => {
       <SelectVersions selected={testVersions} setSelected={setTestVersions}/>
       <p>Choose parameter:</p>
       <ParameterTable>
-        {nRow}
+        <tr>
+          <td>{nLabel}</td>
+          <td style={{padding: "0 1em"}}>{nSlider}</td>
+          <td>{n}</td>
+        </tr>
       </ParameterTable>
       <p>
         Execute: {}
