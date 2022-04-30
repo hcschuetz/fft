@@ -25,7 +25,7 @@ function useSlider<T,>(props: {
       </td>
       <TDInput>
         <input id={props.id} type="range"
-          min={props.min} max={props.max}
+          min={props.min} max={props.max} step={props.step}
           value={x}
           onChange={event => setX(Number(event.target.value))}
         />
