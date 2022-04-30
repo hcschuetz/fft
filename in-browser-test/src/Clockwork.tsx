@@ -1,6 +1,7 @@
 import { abs2, Complex, expi, times, timesScalar, zero } from "complex/dst/Complex";
 import { FFT, FFTFactory } from "fft-api/dst";
 import { FC, useEffect, useRef, useState } from "react";
+import { useAnimationFrames } from "./animationFrames";
 import filledArray from "./filledArray";
 import { useVersions } from "./VersionContext";
 
@@ -93,41 +94,6 @@ const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
   );
 }
 
-/** A "promisified" version of `requestAnimationFrame()` */
-function animationFrame(): Promise<number> {
-  let callback = undefined as any;
-  const promise = new Promise<number>(resolve => {
-    callback = resolve;
-  });
-  requestAnimationFrame(callback);
-  return promise;
-}
-
-/**
- * Call this in your component to ensure re-rendering upon new animation frames.
- * @returns the time since the initial rendering of the component.
- * (Note that the time is measured in seconds as in
- * `SVGAnimationElement.getCurrentTime`, not in milliseconds as in
- * `requestAnimationFrame`.)
- */
-function useAnimationFrames(): number {
-  const [t, setT] = useState<number>(0);
-  useEffect(() => {
-    let alive = true;
-    async function loop() {
-      const t0: number = await animationFrame();
-      while (alive) {
-        setT((await animationFrame() - t0) / 1000);
-      }
-    }
-    loop();
-    return () => {
-      alive = false;
-    }
-  }, []);
-  return t;
-}
-
 const Translate: FC<{offset: Complex}> = ({offset, children}) => (
   <g transform={`translate(${offset.re}, ${offset.im})`}>
     {children}
@@ -138,7 +104,7 @@ const speed = 1 / 20;
 
 const Moving: FC<{center: Complex, rotations: Coeff[], approxPath: Complex[]}> =
 ({center, rotations, approxPath}) => {
-  const t = useAnimationFrames();
+  const t = useAnimationFrames() / 1000;
   const offset = t * speed;        // position measured in rounds
   const baseAngle = offset * TAU;  // position measured in radians
   return (
