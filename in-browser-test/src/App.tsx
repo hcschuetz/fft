@@ -28,6 +28,7 @@ function App() {
       </p>
       <button onClick={() => setClockworkOpen(true)}>Clockwork Demo</button>
       <Overlay close={() => setClockworkOpen(false)} show={clockworkOpen}>
+        <h1>Clockwork Demo</h1>
         {clockworkOpen && <Clockwork/>}
       </Overlay>
       <h2>User Agent</h2>
