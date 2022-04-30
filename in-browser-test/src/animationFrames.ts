@@ -21,10 +21,11 @@ export function useAnimationFrames(): number {
   const [t, setT] = useState<number>(0);
   useEffect(() => {
     let id: number;
+    function setId(value: number) { id = value; }
     async function loop() {
       const t0 = performance.now();
       for (;;) {
-        setT((await animationFrame(value => { id = value; }) - t0));
+        setT((await animationFrame(setId) - t0));
       }
     }
     loop();
