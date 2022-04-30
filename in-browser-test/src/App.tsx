@@ -4,8 +4,11 @@ import Benchmark from './Benchmark';
 import UserAgent from './UserAgent';
 import { versions } from "./versions";
 import { Clockwork } from './Clockwork';
+import Overlay from './Overlay';
+import { useState } from 'react';
 
 function App() {
+  const [clockworkOpen, setClockworkOpen] = useState(false);
   return (
     <VersionProvider versions={versions}>
       <h1>Comparing FFT Implementation Variants</h1>
@@ -23,7 +26,10 @@ function App() {
         Having fulfilled our duties with the tests and benchmarks above,
         it's now time to use FFTs for something that's a bit more fun:
       </p>
-      <Clockwork/>
+      <button onClick={() => setClockworkOpen(true)}>Clockwork Demo</button>
+      <Overlay close={() => setClockworkOpen(false)} show={clockworkOpen}>
+        {clockworkOpen && <Clockwork/>}
+      </Overlay>
       <h2>User Agent</h2>
       <p>
         Your browser identifies as
