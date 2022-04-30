@@ -1,6 +1,6 @@
 import { abs2, Complex, expi, times, timesScalar, zero } from "complex/dst/Complex";
 import { FFT, FFTFactory } from "fft-api/dst";
-import { createContext, FC, useContext, useEffect, useRef, useState } from "react";
+import { createContext, FC, RefObject, useContext, useEffect, useRef, useState } from "react";
 import { useAnimationFrames } from "./animationFrames";
 import filledArray from "./filledArray";
 import ParameterTable from "./ParameterTable";
@@ -19,6 +19,27 @@ export const Clockwork: FC<{}> = () => {
     case "resolved": return <Clockwork1 fftFactory={versionState.value}/>;
   }
 };
+
+const RoundsContext = createContext(0);
+
+const RoundsProvider: FC<{speed: number}> = ({speed, children}) => {
+  const t = useAnimationFrames() / 1000; // real time
+  const tOldRef = useRef<number>(t);
+  const [rounds, setRounds] = useState(0); // "simulated time"
+  useEffect(() => {
+    const deltaT = t - tOldRef.current;
+    tOldRef.current = t;
+    const deltaRounds = deltaT * speed;
+    setRounds(rounds => rounds + deltaRounds);
+  }, [t, tOldRef, speed]);
+  return (
+    <RoundsContext.Provider value={rounds}>
+      {children}
+    </RoundsContext.Provider>
+  )
+}
+
+const useRounds = () => useContext(RoundsContext);
 
 const machineryDisplays = ["nothing", "hands", "hands and dials"];
 
@@ -39,7 +60,6 @@ type Config = {
   showOrig: boolean,
   machineryDisplay: number,
   showTrace: boolean,
-  speed: number,
 };
 const ConfigContext = createContext<Config | undefined>(undefined);
 const useConfig = (): Config => useContext(ConfigContext)!;
@@ -63,11 +83,11 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
   const [showTrace, setShowTrace] = useState(true);
   const [speedLabel, speedSlider, speed] = useSlider({
     id: "speedCW", label: "Speed:",
-    min: -0.3, max: 0.3, step: 0.01,
-    init: 0.05, transform: x => x,
+    min: -40, max: 40,
+    init: 4, transform: x => x/120,
   });
   return (
-    <>
+    <RoundsProvider speed={speed}>
       <ParameterTable>
         <tr>
           <td>{nHandsLabel}</td>
@@ -100,13 +120,21 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         <tr>
           <td>{speedLabel}</td>
           <td style={{padding: "0 1em"}}>{speedSlider}</td>
-          <td style={{width: "13em"}}>{speed} rounds per second<br/>({(1/speed).toFixed(2)} seconds per round)</td>
+          <td style={{width: "13em", height: "3em"}}>
+            {speed === 0 ? "stopped" : (
+              <>
+                {(speed * 60).toFixed(1)} rounds per minute
+                <br/>
+                ({(1/speed).toFixed(2)} seconds per round)
+              </>
+            )}
+          </td>
         </tr>
       </ParameterTable>
-      <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace, speed}}>
+      <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace}}>
         <ClockworkGraphics fftFactory={fftFactory}/>
       </ConfigContext.Provider>
-    </>
+    </RoundsProvider>
   );
 }
 
@@ -155,7 +183,7 @@ const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
   }, [pathEl, fft, nHands]);
 
   return (
-    <svg width={450} height={390} viewBox="0 -0.4 7.5 6.5" style={{border: "1px solid blue"}}>
+    <svg width={450} height={390} viewBox="0 -0.4 7.5 6.5" style={{border: "1px solid black"}}>
       <path ref={pathRef}
         style={{stroke: useConfig().showOrig ? "blue": "none", strokeWidth: 0.05, fill: "none"}}
         // The following example path data is taken from https://de.wikipedia.org/wiki/Datei:Pi-CM.svg
@@ -174,9 +202,8 @@ const Translate: FC<{offset: Complex}> = ({offset, children}) => (
 
 const Moving: FC<{center: Complex, rotations: Coeff[], approxPath: Complex[]}> =
 ({center, rotations, approxPath}) => {
-  const t = useAnimationFrames() / 1000;
-  const {speed, machineryDisplay} = useConfig();
-  const offset = t * speed;        // position measured in rounds
+  const {machineryDisplay} = useConfig();
+  const offset = useRounds(); // position measured in rounds
   const baseAngle = offset * TAU;  // position measured in radians
   return (
     <Translate offset={center}>
