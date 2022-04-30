@@ -1,41 +1,102 @@
 import { abs2, Complex, expi, times, timesScalar, zero } from "complex/dst/Complex";
 import { FFT, FFTFactory } from "fft-api/dst";
-import { FC, useEffect, useRef, useState } from "react";
+import { createContext, FC, useContext, useEffect, useRef, useState } from "react";
 import { useAnimationFrames } from "./animationFrames";
 import filledArray from "./filledArray";
+import ParameterTable from "./ParameterTable";
+import useSlider from "./useSlider";
 import { useVersions } from "./VersionContext";
 
 type Coeff = {k: number, c: Complex, abs: number};
 
 const TAU = 2 * Math.PI;
 
-/*
-What to make configurable
-- path of the image (string input?)
-- display orig image (checkbox)
-- FFT version?
-- size (number of points to be taken in the path) (slider)
-- nCoeffs (number of coefficients to use)
-  (a slider? or a range slider together with the size?)
-- display fading loop (checkbox)
-- "machinery/clockwork" (3-way slider)
-  - nothing
-  - hands (and joints)
-  - hands (and joints) and circles
-- speed (could be backward? then the fading needs to be adapted)
-- position (disabled if speed !== 0)
-  (but naively passing through the position might re-render unchanged stuff!
-  using a context should help.)
-*/
-
 export const Clockwork: FC<{}> = () => {
   const versionState = useVersions()["MW\u00a0fft60"];
   switch (versionState.status) {
     case "pending": return <p>Loading FFT...</p>;
     case "rejected": return <p>Could not load FFT.</p>;
-    case "resolved": return <ClockworkGraphics fftFactory={versionState.value}/>;
+    case "resolved": return <Clockwork1 fftFactory={versionState.value}/>;
   }
 };
+
+const machineryDisplays = ["nothing", "hands", "hands and circles"];
+
+/*
+What else we might make configurable:
+- FFT version?
+- path of the image (string input?)
+- size (number of points to be taken in the path) (slider)
+- position (disabled if speed !== 0)
+  (but naively passing through the position might re-render unchanged stuff!
+  using a context should help.)
+- whether we sort clock hands by hand length (as we currently do) or by
+  rotation speed
+*/
+
+type Config = {
+  nHands: number,
+  showOrig: boolean,
+  machineryDisplay: number,
+  showTrace: boolean,
+  speed: number,
+};
+const ConfigContext = createContext<Config | undefined>(undefined);
+const useConfig = (): Config => useContext(ConfigContext)!;
+
+// I had this configurable, but it turns out that configuring nHands is enough.
+const size = 1 << 9;
+
+const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
+  const [nHands, nHandsRow] = useSlider({
+    id: "nHandsSlider", label: "Number of \"clock hands\"",
+    min: 0, max: size - 1,
+    init: 100, transform: x => x,
+  });
+  const [showOrig, setShowOrig] = useState(false);
+  // TODO: provide space for the output of the following slider
+  const [machineryDisplay, machineryDisplayRow] = useSlider({
+    id: "machinerySlider", label: "Display machinery",
+    min: 0, max: machineryDisplays.length - 1,
+    init: 2, transform: x => x,
+  });
+  const [showTrace, setShowTrace] = useState(true);
+  const [speed, speedRow] = useSlider({
+    id: "speedSlider", label: "Speed",
+    min: -0.3, max: 0.3, step: 0.01,
+    init: 0.05, transform: x => x,
+  });
+  return (
+    <>
+      <ParameterTable>
+        {nHandsRow}
+        <tr>
+          <td>Display original shape</td>
+          <td>
+            <input type="checkbox" style={{marginLeft: "10px"}}
+              checked={showOrig}
+              onChange={ev => setShowOrig(ev.target.checked)}
+            />
+          </td>
+        </tr>
+        {machineryDisplayRow}
+        <tr>
+          <td>Display trace</td>
+          <td>
+            <input type="checkbox" style={{marginLeft: "10px"}}
+              checked={showTrace}
+              onChange={ev => setShowTrace(ev.target.checked)}
+            />
+          </td>
+        </tr>
+        {speedRow}
+      </ParameterTable>
+      <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace, speed}}>
+        <ClockworkGraphics fftFactory={fftFactory}/>
+      </ConfigContext.Provider>
+    </>
+  );
+}
 
 const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
   const pathRef = useRef<SVGPathElement>(null);
@@ -46,11 +107,11 @@ const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     }
   }, [pathRef, pathEl]);
 
-  const [size, setSize] = useState(1024); // TODO add slider
+  const {nHands} = useConfig();
   const [fft, setFFT] = useState<FFT>(() => fftFactory(size));
   useEffect(() => {
     setFFT(fftFactory(size));
-  }, [size, fftFactory])
+  }, [fftFactory])
 
   const [center, setCenter] = useState<Complex>(() => zero);
   const [rotations, setRotations] = useState<Coeff[]>(() => []);
@@ -71,21 +132,20 @@ const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         return {k, c, abs};
       });
 
-      const center = coeffs[0]?.c ?? zero;
-      const rotations = coeffs.slice(1).sort((x, y) => x.abs - y.abs).slice(921);
-      setCenter(center);
+      setCenter(coeffs[0]?.c ?? zero);
+      const rotations = coeffs.slice(1).sort((x, y) => x.abs - y.abs).slice(size - 1 - nHands);
       setRotations(rotations);
       for (let k = 0; k < size; k++)  fft.setInput(k, zero);
       for (const {k, c} of rotations) fft.setInput(k & (size - 1), c);
       fft.run(-1);
       setApproxPath(filledArray(size, i => fft.getOutput(i)));  
     }
-  }, [pathEl, size, fft]);
+  }, [pathEl, fft, nHands]);
 
   return (
     <svg width={450} height={390} viewBox="0 -0.4 7.5 6.5" style={{border: "1px solid blue"}}>
       <path ref={pathRef}
-        style={{/*stroke: "blue", strokeWidth: 0.05,*/ fill:"none"}}
+        style={{stroke: useConfig().showOrig ? "blue": "none", strokeWidth: 0.05, fill: "none"}}
         // The following example path data is taken from https://de.wikipedia.org/wiki/Datei:Pi-CM.svg
         d="M3.37946 0.704598l1.47444 0c-0.352299,1.46139 -0.574116,2.4139 -0.574116,3.45775 0,0.182674 0,1.59404 0.534973,1.59404 0.274009,0 0.508875,-0.25009 0.508875,-0.471907 0,-0.065241 0,-0.0913388 -0.0913351,-0.287058 -0.352299,-0.900321 -0.352299,-2.02246 -0.352299,-2.11379 0,-0.0782899 0,-1.00471 0.274009,-2.17904l1.46139 0c0.169629,0 0.600214,0 0.600214,-0.41754 0,-0.287058 -0.247915,-0.287058 -0.482781,-0.287058l-4.29283 0c-0.300103,0 -0.743741,0 -1.34396,0.639357 -0.33925,0.378393 -0.75679,1.06995 -0.75679,1.14823 0,0.0782899 0.065241,0.104388 0.143531,0.104388 0.0913351,0 0.104384,-0.0391468 0.169625,-0.117433 0.6785,-1.06995 1.357,-1.06995 1.68321,-1.06995l0.743745 0c-0.287062,0.978607 -0.613263,2.11379 -1.68321,4.39721 -0.104384,0.208768 -0.104384,0.234866 -0.104384,0.313156 0,0.276184 0.234866,0.341425 0.352299,0.341425 0.378397,0 0.482781,-0.341425 0.639357,-0.889447 0.208772,-0.665455 0.208772,-0.691549 0.33925,-1.21347l0.75679 -2.94887z"
       />
@@ -100,11 +160,10 @@ const Translate: FC<{offset: Complex}> = ({offset, children}) => (
   </g>
 );
 
-const speed = 1 / 20;
-
 const Moving: FC<{center: Complex, rotations: Coeff[], approxPath: Complex[]}> =
 ({center, rotations, approxPath}) => {
   const t = useAnimationFrames() / 1000;
+  const {speed, machineryDisplay} = useConfig();
   const offset = t * speed;        // position measured in rounds
   const baseAngle = offset * TAU;  // position measured in radians
   return (
@@ -114,9 +173,15 @@ const Moving: FC<{center: Complex, rotations: Coeff[], approxPath: Complex[]}> =
           const offset = times(c, expi(k * baseAngle));
           return (
             <>
-              <circle style={{fill: "red"}} r={0.02}/>
-              <circle style={{stroke: "green", fill: "none", strokeWidth: 0.01}} r={abs}/>
-              <line x1={0} y1={0} x2={offset.re} y2={offset.im} style={{stroke: "red", fill: "none", strokeWidth: 0.01}}/>
+              {machineryDisplay >= 1 && (
+                <>
+                  <circle style={{fill: "black"}} r={0.02}/>
+                  <line x1={0} y1={0} x2={offset.re} y2={offset.im} style={{stroke: "black", fill: "none", strokeWidth: 0.01}}/>
+                  {machineryDisplay >= 2 && (
+                    <circle style={{stroke: "green", fill: "none", strokeWidth: 0.01}} r={abs}/>
+                  )}
+                </>
+              )}
               <Translate offset={offset}>
                 {children}
               </Translate>
@@ -132,23 +197,26 @@ const Moving: FC<{center: Complex, rotations: Coeff[], approxPath: Complex[]}> =
 
 const fadeOut = (x: number): number => x < .2 ? x * 5 : 1;
 
-const FadingLoop: FC<{path: Complex[], offset: number}> = ({path, offset}) => (
-  <>
-    {path.map((p, i) => {
-      const p1 = path[(i-1+path.length) % path.length];
-      const p2 = p;
-      return (
-        <line key={i}
-          style={{
-            stroke: `red`,
-            strokeWidth: 0.05,
-            strokeOpacity: fadeOut((1 + i/path.length - offset % 1) % 1),
-            fill: 'none',
-          }}
-          x1={p1.re} y1={p1.im}
-          x2={p2.re} y2={p2.im}
-        />
-      )
-    })}
-  </>
-);
+const FadingLoop: FC<{path: Complex[], offset: number}> = ({path, offset}) => {
+  const stroke = useConfig().showTrace ? "red" : "none";
+  return (
+    <>
+      {path.map((p, i) => {
+        const p1 = path[(i-1+path.length) % path.length];
+        const p2 = p;
+        return (
+          <line key={i}
+            style={{
+              stroke,
+              strokeWidth: 0.05,
+              strokeOpacity: fadeOut((1 + i/path.length - offset % 1) % 1),
+              fill: 'none',
+            }}
+            x1={p1.re} y1={p1.im}
+            x2={p2.re} y2={p2.im}
+          />
+        )
+      })}
+    </>
+  );
+};
