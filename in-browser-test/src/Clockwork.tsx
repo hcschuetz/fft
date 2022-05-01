@@ -23,17 +23,13 @@ export const Clockwork: FC<{}> = () => {
 const RoundsContext = createContext(0);
 
 const RoundsProvider: FC<{speed: number}> = ({speed, children}) => {
-  const t = useAnimationFrames() / 1000; // real time
-  const tOldRef = useRef<number>(t);
-  const [rounds, setRounds] = useState(0); // "simulated time"
-  useEffect(() => {
-    const deltaT = t - tOldRef.current;
-    tOldRef.current = t;
-    const deltaRounds = deltaT * speed;
-    setRounds(rounds => rounds + deltaRounds);
-  }, [t, tOldRef, speed]);
+  const t = useAnimationFrames() / 1000;
+  const tRef = useRef<number>(t);
+  const roundsRef = useRef<number>(0);
+  roundsRef.current += (t - tRef.current) * speed;
+  tRef.current = t;
   return (
-    <RoundsContext.Provider value={rounds}>
+    <RoundsContext.Provider value={roundsRef.current}>
       {children}
     </RoundsContext.Provider>
   )
