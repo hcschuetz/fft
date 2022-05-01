@@ -88,17 +88,30 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     <RoundsProvider speed={speed}>
       <ParameterTable>
         <tr>
-          <td>{nHandsLabel}</td>
-          <td style={{padding: "0 1em"}}>{nHandsSlider}</td>
-          <td>{nHands}</td>
-        </tr>
-        <tr>
           <td><label htmlFor="showOrigCW">Display original shape</label></td>
           <td style={{paddingLeft: "1em"}}>
             <input id="showOrigCW" type="checkbox"
               checked={showOrig}
               onChange={ev => setShowOrig(ev.target.checked)}
             />
+          </td>
+        </tr>
+        <tr>
+          <td>{nHandsLabel}</td>
+          <td style={{padding: "0 1em"}}>{nHandsSlider}</td>
+          <td>{nHands}</td>
+        </tr>
+        <tr>
+          <td>{speedLabel}</td>
+          <td style={{padding: "0 1em"}}>{speedSlider}</td>
+          <td style={{width: "13em", height: "3em"}}>
+            {speed === 0 ? "stopped" : (
+              <>
+                {(speed * 60).toFixed(1)} rounds per minute
+                <br/>
+                ({(1/speed).toFixed(2)} seconds per round)
+              </>
+            )}
           </td>
         </tr>
         <tr>
@@ -113,19 +126,6 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
               checked={showTrace}
               onChange={ev => setShowTrace(ev.target.checked)}
             />
-          </td>
-        </tr>
-        <tr>
-          <td>{speedLabel}</td>
-          <td style={{padding: "0 1em"}}>{speedSlider}</td>
-          <td style={{width: "13em", height: "3em"}}>
-            {speed === 0 ? "stopped" : (
-              <>
-                {(speed * 60).toFixed(1)} rounds per minute
-                <br/>
-                ({(1/speed).toFixed(2)} seconds per round)
-              </>
-            )}
           </td>
         </tr>
       </ParameterTable>
