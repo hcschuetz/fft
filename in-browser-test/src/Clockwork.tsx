@@ -24,12 +24,14 @@ const RoundsContext = createContext(0);
 
 const RoundsProvider: FC<{speed: number}> = ({speed, children}) => {
   const t = useAnimationFrames() / 1000;
-  const tRef = useRef<number>(t);
-  const roundsRef = useRef<number>(0);
-  roundsRef.current += (t - tRef.current) * speed;
+  const tRef = useRef(t);
+  const roundsRef = useRef(0);
+  let rounds = roundsRef.current + (t - tRef.current) * speed;
+  rounds -= Math.floor(rounds);
+  roundsRef.current = rounds;
   tRef.current = t;
   return (
-    <RoundsContext.Provider value={roundsRef.current}>
+    <RoundsContext.Provider value={rounds}>
       {children}
     </RoundsContext.Provider>
   )
