@@ -16,7 +16,6 @@ const SubWindow = styled.div`
     right: 2rem;
     bottom: 2rem;
     left: 2rem;
-    overflow: auto;
     padding: 1rem;
     background: white;
     text-align: center;
@@ -34,6 +33,8 @@ const Button = styled.button`
 const Container = styled.div`
   display: inline-block;
   text-align: left;
+  height: 100%;
+  overflow: auto;
   //border: 2px solid black;
 `;
 
