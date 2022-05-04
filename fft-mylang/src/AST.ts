@@ -42,6 +42,8 @@ export type IncrementStatement =
   {kind: "IncrementStatement", var_: string};
 export type AssignmentStatement =
   {kind: "AssignmentStatement", deref: boolean, var_: string, operator: string, value: Expression}
+export type ReturnStatement =
+  {kind: "ReturnStatement"}
 
 export type Statement_noLoc =
   EmptyStatement
@@ -52,6 +54,7 @@ export type Statement_noLoc =
 | WhileStatement
 | IncrementStatement
 | AssignmentStatement
+| ReturnStatement
 ;
 
 export type Statement = Statement_noLoc & { location?: Location }

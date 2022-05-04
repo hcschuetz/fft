@@ -22,9 +22,9 @@ class FFTFromWASMModule implements FFT {
     // Either move it to a specific JS file for fft60 or even move it into
     // the WASM module.
     const n = size;
-    const quarterN = n >>> 2;
+    const shuffledSize = Math.max(1, n >>> 2);
   
-    const memorySizeInBytes = 41 * n;
+    const memorySizeInBytes = 40 * n + 4 * shuffledSize;
     const pageSize = 64 * 1024;  // The WebAssembly page size is 64 KiB.
     const memorySizeInPages = Math.ceil(memorySizeInBytes / pageSize);
     const memory = new WebAssembly.Memory({initial: memorySizeInPages, maximum: memorySizeInPages});
@@ -36,18 +36,18 @@ class FFTFromWASMModule implements FFT {
     const cosinesStart = outputStart + output.byteLength;
     const cosines = new Float64Array(memory.buffer, cosinesStart, n);
     const shuffledStart = cosinesStart + cosines.byteLength;
-    const shuffled = new Int32Array(memory.buffer, shuffledStart, quarterN);
+    const shuffled = new Int32Array(memory.buffer, shuffledStart, shuffledSize);
     const dataEnd = shuffledStart + shuffled.byteLength;
     if (dataEnd !== memorySizeInBytes) {
       console.error("unexpected data size", dataEnd, "expected:", memorySizeInBytes);
     }
 
-    for (let i = 0; i < quarterN; i++) {
+    for (let i = 0; i < shuffledSize; i++) {
       shuffled[i] = inputStart;
     }
-    for (let len = quarterN, fStride = 1; len > 1; len >>>= 1, fStride <<= 1) {
+    for (let len = shuffledSize, fStride = 1; len > 1; len >>>= 1, fStride <<= 1) {
       const halfLen = len >>> 1;
-      for (let out_offset = 0; out_offset < quarterN; out_offset += len) {
+      for (let out_offset = 0; out_offset < shuffledSize; out_offset += len) {
         const limit = out_offset + len;
         for (let out_offset_odd = out_offset + halfLen; out_offset_odd < limit; out_offset_odd++) {
           shuffled[out_offset_odd] += fStride * 16;

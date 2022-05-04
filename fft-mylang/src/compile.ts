@@ -546,6 +546,10 @@ function compile(M: B.Module, funcName: string, parameters: string, ast: Compoun
         code.emit(M.loop(loopLabel, loopCode.asBlock()));
         return;
       }
+      case "ReturnStatement": {
+        code.emit(M.return());
+        return;
+      }
       default: throw new Error("Unexpected statement kind: " + (statement as any).kind);
     }
   }

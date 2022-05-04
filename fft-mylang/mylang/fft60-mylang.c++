@@ -1,3 +1,20 @@
+if (n == 1) {
+  complex_p p = *shuffled;
+  complex z0 = *p;
+  complex_p o = output;
+  *o = z0;
+  return;
+}
+if (n == 2) {
+  complex_p p = *shuffled;
+  complex z0 = *p; ++p;
+  complex z1 = *p;
+  complex_p o = output;
+  *o = z0 + z1; ++o;
+  *o = z0 - z1;
+  return;
+}
+
 double_o nMask = double_o(n-1);
 complex_o n_co = complex_o(n);
 

@@ -62,6 +62,7 @@ IfToken         = @"if"         !IdentifierPart
 ElseToken       = @"else"       !IdentifierPart
 ForToken        = @"for"        !IdentifierPart
 WhileToken      = @"while"      !IdentifierPart
+ReturnToken     = @"return"     !IdentifierPart
 
 ReservedWord
   = Keyword
@@ -71,6 +72,7 @@ Keyword
   / ElseToken
   / ForToken
   / WhileToken
+  / ReturnToken
 
 
 Literal
@@ -246,6 +248,7 @@ Statement
   / EmptyStatement
   / IncrementStatement
   / AssignmentStatement
+  / ReturnStatement
 
 VarDeclLoc
   = x:VarDecl   {return {...x, location: location()}}
@@ -309,3 +312,6 @@ AssignmentStatement
   = deref:("*" __)? var_:Identifier __ operator:AssignmentOperator __ value:AssignmentExpression __ ";"{
       return {kind: "AssignmentStatement", deref: Boolean(deref), var_, operator, value};
     }
+
+ReturnStatement
+  = ReturnToken { return { kind: "ReturnStatement" }; }
