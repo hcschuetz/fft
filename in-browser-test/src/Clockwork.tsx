@@ -12,7 +12,7 @@ type Coeff = {k: number, c: Complex, abs: number};
 const TAU = 2 * Math.PI;
 
 export const Clockwork: FC<{}> = () => {
-  const versionState = useVersions()["MW\u00a0fft60"];
+  const versionState = useVersions()["MW fft60"];
   switch (versionState.status) {
     case "pending": return <p>Loading FFT...</p>;
     case "rejected": return <p>Could not load FFT.</p>;

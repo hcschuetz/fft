@@ -5,7 +5,7 @@ import McLeodPitchDetector from "./McLeodPitchDetector";
 import { useVersions } from "./VersionContext";
 
 export const FrequenciesDemo: FC<{}> = () => {
-  const versionState = useVersions()["MW\u00a0fft60"];
+  const versionState = useVersions()["MW fft60"];
   switch (versionState.status) {
     case "pending": return <p>Loading FFT...</p>;
     case "rejected": return <p>Could not load FFT.</p>;

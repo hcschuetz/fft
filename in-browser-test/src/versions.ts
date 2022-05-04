@@ -9,8 +9,8 @@ import mapObject from "./mapObject";
 import asPromise from "./asPromise";
 
 export const versions: Record<string, Promise<FFTFactory>> = {
-  ...prefixKeys("TJ\u00a0", mapObject(tsVersions, asPromise)),
-  ...prefixKeys("CJ\u00a0", mapObject(cppVersions, func => func())),
-  ...prefixKeys("CW\u00a0", mapObject(wasmVersions, func => func())),
-  ...prefixKeys("MW\u00a0", mapObject(mylangVersions, func => func())),
+  ...prefixKeys("TJ ", mapObject(tsVersions, asPromise)),
+  ...prefixKeys("CJ ", mapObject(cppVersions, func => func())),
+  ...prefixKeys("CW ", mapObject(wasmVersions, func => func())),
+  ...prefixKeys("MW ", mapObject(mylangVersions, func => func())),
 };
