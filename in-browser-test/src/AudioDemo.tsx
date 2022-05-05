@@ -4,12 +4,12 @@ import { animationFrame } from "./animationFrames";
 import McLeodPitchDetector from "./McLeodPitchDetector";
 import { useVersions } from "./VersionContext";
 
-export const FrequenciesDemo: FC<{}> = () => {
+export const AudioDemo: FC<{}> = () => {
   const versionState = useVersions()["MW fft60"];
   switch (versionState.status) {
     case "pending": return <p>Loading FFT...</p>;
     case "rejected": return <p>Could not load FFT.</p>;
-    case "resolved": return <FrequenciesDemo1 fftFactory={versionState.value}/>;
+    case "resolved": return <AudioDemo1 fftFactory={versionState.value}/>;
   }
 };
 
@@ -66,7 +66,7 @@ const pos2freq = (pos: number): number => {
   return 2**(fraction * nOctaves + log2_lowerFreqBound);
 }
 
-const FrequenciesDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
+const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [foo, setPitchResult] = useState({period: 0, clarity: 0});
   useEffect(() => {
