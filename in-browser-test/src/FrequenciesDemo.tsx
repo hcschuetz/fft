@@ -13,7 +13,7 @@ export const FrequenciesDemo: FC<{}> = () => {
   }
 };
 
-// My Firefox seems to sample at 48 kHz, not 44.1 kHz (at least by default).
+// My Firefox seems to sample at 48 kHz by default, not at 44.1 kHz.
 // So we better ask for the sample rate.
 const getSampleRate = () => {
   const ac = new AudioContext();
@@ -79,7 +79,7 @@ const FrequenciesDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     async function loop(cc: CanvasRenderingContext2D) {
       const rgbaData = new Uint8ClampedArray(height * stepWidth * 4);
       const freqData = new Uint8Array(fftWindowSize);
-      const timeData = new Float32Array(fftWindowSize)
+      const timeData = new Float32Array(fftWindowSize);
 
       ac = new AudioContext();
       const stream = await navigator.mediaDevices.getUserMedia({audio: true});
