@@ -25,6 +25,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "build-style": "sass src/_inputrange.scss > src/_inputrange.css",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -46,5 +47,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "sass": "^1.51.0"
   }
 }
