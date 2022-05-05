@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { VersionProvider } from './VersionContext';
 import Tests from './Tests';
 import Benchmark from './Benchmark';
@@ -5,7 +7,6 @@ import UserAgent from './UserAgent';
 import { versions } from "./versions";
 import { Clockwork } from './Clockwork';
 import Overlay from './Overlay';
-import { useState } from 'react';
 import { FrequenciesDemo } from './FrequenciesDemo';
 
 function App() {
