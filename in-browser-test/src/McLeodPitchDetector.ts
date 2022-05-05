@@ -1,7 +1,7 @@
 import parabolaVertex from "./parabolaVertex";
 
 /**
- * See https://www.researchgate.net/publication/230554927_A_smarter_way_to_find_pitch
+ * See https://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf
  * 
  * This function returns the period measured in samples (aka frames).
  * It is left to the caller to convert this into a pitch frequency.
