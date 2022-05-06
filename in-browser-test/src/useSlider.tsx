@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
 
+/** Returns an array `[labelNode, sliderNode, value]` */
 function useSlider<T,>(props: {
   id: string, label: ReactNode,
   min: number, max: number, step?: number
