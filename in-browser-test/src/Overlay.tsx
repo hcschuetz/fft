@@ -35,8 +35,6 @@ const Container = styled.div`
   display: inline-block;
   text-align: left;
   height: 100%;
-  overflow: auto;
-  //border: 2px solid black;
 `;
 
 const Overlay: FC<{close: () => void, show: boolean}> = ({

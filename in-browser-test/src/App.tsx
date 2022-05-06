@@ -34,11 +34,9 @@ function App() {
       <button onClick={() => setAudioDemoOpen(true)}>Audio Demo</button>
 
       <Overlay close={() => setClockworkOpen(false)} show={clockworkOpen}>
-        <h1>Clockwork Demo</h1>
         {clockworkOpen && <Clockwork/>}
       </Overlay>
       <Overlay close={() => setAudioDemoOpen(false)} show={audioDemoOpen}>
-        <h1>Audio Demo</h1>
         {audioDemoOpen && <AudioDemo/>}
       </Overlay>
       <h2>User Agent</h2>

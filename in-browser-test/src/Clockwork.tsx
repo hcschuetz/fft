@@ -11,7 +11,15 @@ type Coeff = {k: number, c: Complex, abs: number};
 
 const TAU = 2 * Math.PI;
 
-export const Clockwork: FC<{}> = () => {
+
+export const Clockwork: FC<{}> = () => (
+  <div>
+    <h1>Clockwork Demo</h1>
+    <Clockwork2/>
+  </div>
+);
+
+export const Clockwork2: FC<{}> = () => {
   const versionState = useVersions()["MW fft60"];
   switch (versionState.status) {
     case "pending": return <p>Loading FFT...</p>;
