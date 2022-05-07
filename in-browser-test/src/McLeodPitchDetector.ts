@@ -12,7 +12,8 @@ class McLeodPitchDetector {
 
   public values: Float32Array;
   public readonly rs: Float64Array; // only needed for demo purposes
-  public readonly ms: Float64Array; // only needed for demo purposes
+  public readonly m1s: Float64Array; // only needed for demo purposes
+  public readonly m2s: Float64Array; // only needed for demo purposes
   public readonly nsdf: Float64Array;
 
   public period: number = -1;
@@ -26,28 +27,30 @@ class McLeodPitchDetector {
   ) {
     this.values = new Float32Array(dataSize);
     this.rs = new Float64Array(n);
-    this.ms = new Float64Array(n);
+    this.m1s = new Float64Array(n);
+    this.m2s = new Float64Array(n);
     this.nsdf = new Float64Array(n);
   }
   
   run() {
-    const {n, values, k, rs, ms, nsdf} = this;
+    const {n, values, k, rs, m1s, m2s, nsdf} = this;
     // if there are more than n values, take the latest ones,
     // that is, toward the end of the array
     const offset = values.length - n;
 
     // TODO use FFT-based optimization
     for (let tau = 0; tau < n; tau++) {
-      let r = 0;
-      let m = 0;
+      let m1 = 0, m2 = 0, r = 0;
       for (let i = offset, j = offset + tau; j < values.length; i++, j++) {
         const vi = values[i], vj = values[j];
+        m1 += vi * vi
+        m2 += vj * vj; 
         r += vi * vj;
-        m += vi * vi + vj * vj; 
       }
+      m1s[tau] = m1;
+      m2s[tau] = m2;
       rs[tau] = r;
-      ms[tau] = m;
-      nsdf[tau] = 2 * r / m;
+      nsdf[tau] = 2 * r / (m1 + m2);
     }
 
     // pick the appropriate peak in nsdf:

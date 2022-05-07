@@ -1,9 +1,11 @@
+import { FC, ReactNode, useEffect, useRef, useState } from "react";
 import { FFTFactory } from "fft-api/dst";
-import { FC, useEffect, useRef, useState } from "react";
+
 import { animationFrame } from "./animationFrames";
 import Canvas2D from "./Canvas2D";
 import McLeodPitchDetector from "./McLeodPitchDetector";
 import { useVersions } from "./VersionContext";
+import styled from "styled-components";
 
 export const AudioDemo: FC<{}> = () => {
   const versionState = useVersions()["MW fft60"];
@@ -76,6 +78,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pitchResult, setPitchResult] = useState({period: 0, clarity: 0});
+  const [freeze, setFreeze] = useState(false);
   useEffect(() => {
     let animationFrameId: number | null = null;
     function setAnimationFrameId(value: number): void { animationFrameId = value; }
@@ -97,6 +100,11 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
 
       for (;;) {
         await animationFrame(setAnimationFrameId);
+        if (freeze) {
+          // It's a bit hacky to poll `freeze` upon each animation frame,
+          // but for a demo it's ok.
+          continue;
+        }
         analyser.getByteFrequencyData(freqData);
         cc.putImageData(cc.getImageData(stepWidth, 0, width - stepWidth, height), 0, 0);
         let k = 0;
@@ -145,7 +153,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         cancelAnimationFrame(animationFrameId);
       }
     }
-  }, [pitchDetector, canvasRef]);
+  }, [pitchDetector, canvasRef, freeze]);
 
   const noDisplay = pitchResult.period === 0 || pitchResult.clarity < 0.8;
   const frequencyHz = sampleRate / pitchResult.period;
@@ -158,6 +166,8 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     Math.abs(centsOffset) < 0.5 ? "±\u20070" :
     centsOffset < 0 ? `-${(-centsOffset).toFixed(0).padStart(2, "\u2007")}` :
     `+${(+centsOffset).toFixed(0).padStart(2, "\u2007")}`;
+
+  const [tau, setTau] = useState(0);
   return (
     <div style={{height: "100%", width: "850px", overflow: "auto"}}>
       <h1>Audio Demo</h1>
@@ -167,8 +177,8 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       </p>
       <div>
         Pitch:
-        <span style={{display: "inline-block", width: "3em", textAlign: "right", marginRight: "2em"}}>
-          {noDisplay ? "-" : frequencyHz.toFixed(1)}
+        <span style={{display: "inline-block", width: "4.5em", textAlign: "right", marginRight: "2em"}}>
+          {noDisplay ? "-" : frequencyHz.toFixed(1)} Hz
         </span>
         Note:
         <span style={{display: "inline-block", width: "2em", textAlign: "right"}}>
@@ -197,27 +207,333 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       </ul>
       <p>The vertical (frequency) axis uses a logarithmic scale.</p>
 
-      <h2>How The McLeod Pitch-Detection Method Works</h2>
+      <h2>Visual Explanation of the McLeod Pitch-Detection Method</h2>
+      <p>
+        The pitch computation used above is based on the paper {}
+        <a href="https://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf">
+          <em>A Smarter Way to Find Pitch</em>
+        </a> by P. McLeod and G. Wyvill.
+        In this section we visualize the computation steps of this method.
+      </p>
       <p>Here is the (more or less) raw sound wave from your microphone:</p>
       <WaveCanvas pitchDetector={pitchDetector}/>
       <p>
+        <label>
+          You can freeze the audio input so that you need not sing all the time: {}
+          <input type= "checkbox" checked={freeze} onChange={event => setFreeze(event.target.checked)}/>
+        </label>
+      </p>
+      <p>
         We can correlate this wave with a delayed version of itself.
-        This "autocorrelation" is a function of the delay:
+        Use the slider to change the delay:
       </p>
-      <AutoCorrCanvas pitchDetector={pitchDetector}/>
+      <div>
+        <input type="range"
+          style={{width: 800}}
+          min={0} max={pitchWindowSize}
+          value={tau} onChange={event => setTau(Number(event.target.value))}
+        />
+      </div>
+      <TwoWaveCanvas pitchDetector={pitchDetector} tau={tau}/>
       <p>
-        SDF:
+        The product of the two waves at each point of time is shown
+        in green where positive and red where negative.
+        The "autocorrelation" is defined as the integral over this product,
+        or actually a sum since we are using discrete samples:
       </p>
-      <SDFCanvas pitchDetector={pitchDetector}/>
+      <blockquote><F>∑ x<sub>i</sub> x<sub>i+τ</sub></F></blockquote>
       <p>
-        ...normalize:
+        where <F>i</F> runs from <F>t</F> to <F>t+W-<N>1</N>-τ</F> in the summation.
+        Here <F>t</F> is the index of the first sample in the time window,
+        {} <F>W</F> is the window length, and <F>τ</F> is the delay.
+      </p>
+      <p>
+        If the two waves are well-aligned, then (almost) all of the products
+        are positive and the autocorrelation value is high.
+        Otherwise the autocorrelation value is lower or even negative.
+      </p>
+      <p>
+        We can display the autocorrelation as a function of the delay:
+      </p>
+      <AutoCorrCanvas pitchDetector={pitchDetector} tau={tau}/>
+      <p>
+        The autocorrelation value does not only depend on how well the
+        original and the delayed wave align.
+        Its absolute value also decreases with a growing delay
+        because the time overlap between the two waves shrinks.
+        (This is the "tapering effect" mentioned in the paper
+        for the "type II" autocorrelation function.)
+      </p>
+      <p>
+        The absolute product <F>|ab|</F> of two (real) numbers is always smaller
+        than the average of their squares <F>½ <P>a<SQ/>+b<SQ/></P></F>.
+        When <F>a</F> and <F>b</F> get close to each other,
+        then <F>|ab|</F> gets close to <F>½ <P>a<SQ/>+b<SQ/></P></F> as well.
+        As a consequence the autocorrelation value
+        {} <F>∑ x<sub>i</sub> x<sub>i+τ</sub></F> {}
+        ranges between
+        {} <F>-½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
+        and
+        {} <F>+½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F>,
+        which we can consider the best and worst case for the correlation.
+        (Again <F>i</F> runs from <F>t</F> to <F>t+W-<N>1</N>-τ</F> in the summations.)
+        This is the area highlighted in the graph above.
+        Notice that the sum
+        {} <F>∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
+        is called <F>m'<sub>t</sub> <P>τ</P></F> in the McLeod/Wyvill paper.
+      </p>
+      <p>
+        We divide the autocorrelation function by
+        {} <F>½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
+        to normalize it to the range [-1, +1]:
       </p>
       <NSDFCanvas pitchDetector={pitchDetector}/>
+      <p>
+        This function is called the "Normalized Square Difference Function"
+        (NSDF) <F>n'<sub>t</sub> <P>τ</P></F> in the McLeod/Wyvill paper.
+        It is used to determine the pitch as follows:
+        <ul>
+          <li>
+            For each positive range between an upward and a downward zero
+            crossing the maximum value is determined.
+            Actually such a maximum need not occur at a sampling point.
+            Parabolic interpolation is used for a better approximation of the
+            peak which we would get with continuous sampling.
+            (These peaks are marked by bullets in the graph.)
+          </li>
+          <li>
+            The highest of these peaks is determined (marked by a green bullet)
+            and a cut-off at some constant percentage of this peak height is calculated.
+            In our demo the cut-off percentage is 93%.
+            (The cut-off level is marked by a green line.)
+          </li>
+          <li>
+            The first peak above the cut-off level is chosen
+            (marked by a red bullet and a vertical red line in the graph).
+            It may be the same as the highest peak or a different one.
+          </li>
+          <li>
+            The <F>τ</F> value for this peak is the "pitch period"
+            measured in sampling steps.  This period can be converted
+            into a frequency and a musical note in the usual way.
+            The height of the chosen peak is returned as the "clarity" of the wave.
+            The closer 
+            (You can see the current pitch frequency, note, and clarity
+            at the beginning of the demo.)
+          </li>
+        </ul>
+      </p>
+      <h2>A Note on Terminology</h2>
+      <p>
+        What McLeod/Wyvill and also the previous section call
+        auto<em>correlation</em> is actually
+        a <a href="https://en.wikipedia.org/wiki/Covariance">covariance</a> {}
+        between the wave and its delayed version
+        (assuming that the mean value of each wave is 0).
+        So it might better be called auto<em>covariance</em>.
+      </p>
+      <p>
+        This autocovariance can be normalized to an actual autocorrelation
+        as usual in statistics by dividing it
+        by the standard deviations of the two waves in the overlap:
+      </p>
+      <blockquote><F>
+        <P> ∑ x<sub>i</sub> x<sub>i+τ</sub> </P> / {}
+        <P>σ<sub>t</sub> <P>τ</P> σ<sub>t+τ</sub> <P>τ</P></P></F></blockquote>
+      <p>where the standard deviations are defined like this:</p>
+      <blockquote>
+        <F>σ<sub>t</sub> <P>τ</P> = <SQRT> ∑ x<sub>i</sub><SQ/> </SQRT></F>
+        <br/>
+        <F>σ<sub>t+τ</sub> <P>τ</P> = <SQRT> ∑ x<sub>i+τ</sub><SQ/> </SQRT></F>
+      </blockquote>
+      <p>
+        Notice that in our normalization formula the denominator
+        {} <F>σ<sub>t</sub> <P>τ</P> σ<sub>t+τ</sub> <P>τ</P></F> {}
+        is actually the <em>geometric</em> mean of the variances
+        {} <F>∑ x<sub>i</sub><SQ/></F> and
+        {} <F>∑ x<sub>i+τ</sub><SQ/></F>.
+        In the previous section we have used the <em>arithmetic</em> mean
+        of these two values as the denominator for normalization.
+        In practice this does not make much of a difference.
+        So McLeod's "Normalized Square Difference Function" is actually
+        quite close to what I would call an autocorrelation function.
+      </p>
+      <p>
+        Finally, you may have noticed that according to standard terminology
+        all our summations would have to be divided by the number of terms,
+        that is, by the overlap size <F>W-τ</F>.
+        But in the autocorrelation formula these divisors cancel each other out.
+      </p>
+      <h2>The Squared Difference Function</h2>
+      <p>
+        While the approach described above attempts
+        to maximize the correlation between the original and the delayed wave,
+        we can also try to minimize the differences between the two waves.
+        (Actually we sqare the differences so that differences in both directions
+        contribute to the "badness" measure.)
+      </p>
+      <p>
+        <label>
+          Here you have another chance to freeze/unfreeze the audio input: {}
+          <input type= "checkbox" checked={freeze} onChange={event => setFreeze(event.target.checked)}/>
+        </label>
+      </p>
+      <p>
+        ...and another possibility to select the delay <F>τ</F>:
+      </p>
+      <div>
+        <input type="range"
+          style={{width: 800}}
+          min={0} max={pitchWindowSize}
+          value={tau} onChange={event => setTau(Number(event.target.value))}
+        />
+      </div>
+      <p>
+        ...to compare the original wave to various delayed waves:
+      </p>
+      <TwoWaveCanvas2 pitchDetector={pitchDetector} tau={tau}/>
+      <p>
+        The green areas show the squared differences between the two waves.
+        If the two waves are well-aligned, these green areas become almost zero.
+      </p>
+      <p>
+        As above, we can see the integral (actually sum) over the squared
+        differences as a function of <F>τ</F>:
+      </p>
+      <SDFCanvas pitchDetector={pitchDetector} tau={tau}/>
+      <p>
+        The "Squared Difference Function" (SDF) <F>d'<sub>t</sub> <P>τ</P></F> {}
+        can be written as
+      </p>
+      <blockquote>
+        <F>
+          d'<sub>t</sub> <P>τ</P>
+          {} = {}
+          ∑ <P>x<sub>i</sub> - x<sub>i+τ</sub></P><SQ/>
+          {} = {}
+          ∑ <P>x<sub>i</sub><SQ/> - 2 x<sub>i</sub> x<sub>i+τ</sub> + x<sub>i+τ</sub><SQ/></P>
+          {} = {}
+          ∑ x<sub>i</sub><SQ/> - 2 ∑ x<sub>i</sub> x<sub>i+τ</sub> + ∑ x<sub>i+τ</sub><SQ/>
+        </F>
+      </blockquote>
+      <p>
+        Using our earlier result that {}
+        <F>∑ x<sub>i</sub> x<sub>i+τ</sub> &gt;
+        -½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
+        we can conclude that
+      </p>
+      <blockquote>
+        <F>
+          d'<sub>t</sub> <P>τ</P>
+          {} &lt; {}
+          ∑ x<sub>i</sub><SQ/> + 2 · ½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P> + ∑ x<sub>i+τ</sub><SQ/>
+          {} = {}
+          2 · <P> ∑ x<sub>i</sub><SQ/> + ∑ x<sub>i+τ</sub><SQ/> </P>
+          {} = {}
+          2 m'<sub>t</sub> <P>τ</P>
+        </F>
+      </blockquote>
+      <p>
+        The area below <F>2 m'<sub>t</sub> <P>τ</P></F> is highlighted in
+        the graph above.
+        So we can normalize the SDF to the range [0, 1] by dividing it
+        by <F>2 m'<sub>t</sub> <P>τ</P></F>:
+      </p>
+      <blockquote>
+        <F>
+          d'<sub>t</sub> <P>τ</P> / <P>2 m'<sub>t</sub> <P>τ</P></P>
+        </F>
+      </blockquote>
+      <p>
+        This is what I would call the "normalized squared-difference function":
+      </p>
+      <NSDF2Canvas pitchDetector={pitchDetector}/>
+      <p>
+        Collecting the minima and picking one of them as the pitch period
+        can be done in a way completely analogous to the peak picking algorithm
+        for the autocorrelation function above and it leads to the same pitch.
+      </p>
+      <p>
+        The close relationship between this function and the autocorrelation function
+        {} <F>n'<sub>t</sub> <P>τ</P></F> {}
+        is probably the reason why McLeod and Wyvill call the latter the
+        "Normalized Squared-Difference Function".
+      </p>
+      <h2>A Note on Tapering</h2>
+      <p>
+        When the delay <F>τ</F> gets close to the window size <F>W</F> the
+        overlap <F>W-τ</F> of the two waves gets short.
+        This lets the normalized values (McLeod/Wyvill's NSDF function or my
+        autocorrelation from the previous section) become statistically unstable.
+        We easily get the highest peak for <F>τ</F> close to <F>W</F> and
+        with a noisy signal that peak is also selected for the pitch period.
+      </p>
+      <p>
+        To overcome this problem, high values of <F>τ</F> {}
+        (for example <F>τ &gt; ½ W</F>)
+        should be ignored when searching for the highest peak.
+        In their conclusion McLeod and Wyvill state that
+        the algorithm can "extract pitch with as little as two periods".
+        That is, it is anyway assumed that the pitch period is shorter than
+        {} <F>½ W</F>.
+      </p>
+      <h2>A Note on Superimposition</h2>
+      <p>
+        A funny effect can be observed
+        when the input signal is the superimposition of of two tones
+        whose base frequencies have ratios close to 2/3, 3/4, 2/5, 3/5, 4/5,
+        or the like
+        ( in general, fractions whose numerator and denominator in reduced form
+        are small numbers but greater than 1).
+        With appropriate amplitudes the determined pitch period will be the
+        least common multiple of the individual pitch periods.
+        Or, equivalently, the determined pitch frequency will be the
+        greatest common divisor of the individual pitch frequencies.
+      </p>
+      <p>
+        Peaks in the (normalized) autocorrelation graph occur at
+        the pitch period of an individual tone and multiples thereof.
+        But the highest peaks appear for the common multiples
+        of the two pitch periods.
+      </p>
+      <p>
+        You can try this by playing two notes simultaneously
+        that are a fifth, a fourth, or even just a major or minor third apart.
+      </p>
+      <h2>And Finally: A Note on FFT</h2>
+      <p>
+        I started to implement McLeod's pitch-detection method just as a use
+        case for FFT.  Only then I started to think about the method in more
+        detail.
+      </p>
+      <p>
+        But where does FFT come into play?
+        ...TODO
+      </p>
     </div>
   );
 };
 
 const notes = "c c♯ d d♯ e f f♯ g g♯ a b♭ b".split(" ");
+
+const F = styled.span`
+  font-family: serif;
+  font-style: italic;
+  white-space: nowrap;
+`;
+
+const N = styled.span`
+  font-style: normal;
+`;
+
+const P: FC = ({children}) => <><N>(</N>{children}<N>)</N></>;
+
+const SQ: FC = () => <sup><N>2</N></sup>
+
+const SQRT: FC = ({children}) => (
+  <>&radic;<span style={{borderTop: "1px solid black"}}>{children}</span></>
+);
+
 
 /** TypeScript should provide this out of the box */
 type TypedArray =
@@ -251,6 +567,9 @@ function stdDev<T extends TypedArray>(array: T, limit = array.length) {
   return Math.sqrt(sum / limit);
 }
 
+// TODO Use a chart library? 
+// See https://www.google.com/search?q=react+chart+library
+
 /**
  * Draw a function as Path2D.
  * 
@@ -264,6 +583,7 @@ function drawFunc(
     from = 0, to = 1, step = 1,
     scaleX = 1, scaleY = 1,
     shiftX = 0, shiftY = 0,
+    close = false,
   },
 ): Path2D {
   const path = new Path2D()
@@ -271,6 +591,25 @@ function drawFunc(
   for (let x = from + step; x < to; x += step) {
     path.lineTo(shiftX + scaleX * x, shiftY + scaleY * func(x));
   }
+  if (close) {
+    path.lineTo(shiftX + scaleX * to, shiftY);
+    path.lineTo(shiftX              , shiftY);
+    path.closePath();
+  }
+  return path;
+}
+
+function line(
+  {
+    x1 = 0, x2 = 0,
+    y1 = 0, y2 = 0,
+    scaleX = 1, scaleY = 1,
+    shiftX = 0, shiftY = 0,
+  },
+): Path2D {
+  const path = new Path2D()
+  path.moveTo(shiftX + scaleX * x1, shiftY + scaleY * y1);
+  path.lineTo(shiftX + scaleX * x2, shiftY + scaleY * y2);
   return path;
 }
 
@@ -281,15 +620,31 @@ function zeroLine(
     shiftX = 0, shiftY = 0,
   },
 ): Path2D {
-  const path = new Path2D()
-  path.moveTo(shiftX + scaleX * from, shiftY);
-  path.lineTo(shiftX + scaleX * to  , shiftY);
+  return line({x1: from, x2: to, scaleX, shiftX, shiftY});
+}
+
+const TAU = 2 * Math.PI;
+
+function dot(
+  cx: number, cy: number, r: number,
+  {
+    scaleX = 1, scaleY = 0,
+    shiftX = 0, shiftY = 0,
+  },
+): Path2D {
+  const path = new Path2D();
+  path.arc(shiftX + scaleX * cx, shiftY + scaleY * cy, r, 0, TAU);
   return path;
 }
 
+const canvasProps = {
+  width: 800, height: 200,
+  style: {border: "1px solid black"},
+};
+
 const WaveCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   pitchDetector
-}) => <Canvas2D width={800} height={200} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {values, dataSize, n} = pitchDetector;
@@ -300,52 +655,81 @@ const WaveCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   const options = {
     to: dataSize,
     scaleX: width / n,
-    scaleY: -32 / Math.max(0.01, stdDev(values)),
+    scaleY: -30 / Math.max(0.01, stdDev(values)),
     shiftY: height / 2,
   };
   console.log(offset, options)
   cc.stroke(zeroLine(options));
+  cc.strokeStyle = "blue";
   cc.stroke(drawFunc(x => values[x + offset], options));
 }}/>
 
-const AutoCorrCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
-  pitchDetector
-}) => <Canvas2D width={800} height={200} animate={(t, cc) => {
+const TwoWaveCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
+  pitchDetector, tau
+}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
-  const {rs, ms, n} = pitchDetector;
-  const options =  {
-    to: n,
+  const {values, dataSize, n} = pitchDetector;
+  const maxIdx = getMaxIndex(values, n * 0.25);
+  const limit = 0.98 * values[maxIdx];
+  let offset = 0;
+  while (offset <= maxIdx && values[offset] < limit) offset++;
+  const rescale = Math.max(0.01, stdDev(values));
+  const options = {
+    to: dataSize,
     scaleX: width / n,
-    scaleY: -height / 2 / ms[0],
-    shiftY: height/2,
+    scaleY: -30 / rescale,
+    shiftY: height / 2,
   };
+  const optionsClose = {...options, close: true};
   cc.stroke(zeroLine(options));
-  cc.stroke(drawFunc(tau => 2 * rs[tau], options));
-  cc.stroke(drawFunc(tau => ms[tau], options));
-  cc.stroke(drawFunc(tau => -ms[tau], options));
+  cc.strokeStyle = "blue";
+  const wave1 = (x: number) => values[x + offset];
+  const wave2 = (x: number) => {
+    const xPrime = x - tau;
+    return xPrime <= 0 ? 0 : values[xPrime + offset];
+  };
+  cc.fillStyle = "#cfc";
+  cc.fill(drawFunc(x => Math.max(0, wave1(x) * wave2(x)) / (rescale * 2), optionsClose));
+  cc.fillStyle = "#fcc";
+  cc.fill(drawFunc(x => Math.min(0, wave1(x) * wave2(x)) / (rescale * 2), optionsClose));
+  cc.stroke(drawFunc(wave1, options));
+  cc.strokeStyle = "#66f";
+  cc.stroke(drawFunc(wave2, options));
 }}/>
 
-const SDFCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
-  pitchDetector
-}) => <Canvas2D width={800} height={200} animate={(t, cc) => {
+const AutoCorrCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
+  pitchDetector, tau
+}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
-  const {rs, ms, n} = pitchDetector;
+  const {rs, m1s, m2s, n} = pitchDetector;
+  const m = (tau: number) => (m1s[tau] + m2s[tau]) / 2;
+  // // I'd actually prefer the geometric mean, which makes r/m the correlation:
+  // const m = (tau: number) => Math.sqrt(m1s[tau] * m2s[tau]);
   const options =  {
     to: n,
     scaleX: width / n,
-    scaleY: -height / 2 / ms[0],
-    shiftY: height,
+    scaleY: -height/2 / m(0),
+    shiftY: height/2,
   };
+  const optionsClose = {...options, close: true};
+  cc.fillStyle = "#ccf";
+  cc.fill(drawFunc(tau => +m(tau), optionsClose));
+  cc.fill(drawFunc(tau => -m(tau), optionsClose));
   cc.stroke(zeroLine(options));
-  cc.stroke(drawFunc(tau => ms[tau] - 2 * rs[tau], options));
-  cc.stroke(drawFunc(tau => 2 * ms[tau], options));
+  const tauMarkColor = rs[tau] > 0 ? "green" : "red";
+  cc.fillStyle = tauMarkColor;
+  cc.strokeStyle = tauMarkColor;
+  cc.stroke(line({x1: tau, y1: 0, x2: tau, y2: rs[tau], ...options}));
+  cc.fill(dot(tau, rs[tau], 4, options));
+  cc.strokeStyle = "blue";
+  cc.stroke(drawFunc(tau => rs[tau], options));
 }}/>
 
 const NSDFCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   pitchDetector
-}) => <Canvas2D width={800} height={200} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {nsdf, n, peaks, highestPeak, k, period, clarity} = pitchDetector;
@@ -356,20 +740,101 @@ const NSDFCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
     shiftY: height / 2,
   }
   cc.stroke(zeroLine(options));
+  cc.strokeStyle = "blue";
   cc.stroke(drawFunc(tau => nsdf[tau], options));
 
   for (const {tau, val} of peaks) {
-    const markSize = val === highestPeak ? 6 : 4
-    cc.strokeRect(
-                       tau * options.scaleX - markSize/2,
-      options.shiftY + val * options.scaleY - markSize/2,
-      markSize,
-      markSize);
+    const r = val === highestPeak ? 6 : 3;
+    cc.fillStyle = val === highestPeak ? "green" : "blue";
+    cc.fill(dot(tau, val, r, options));
   }
 
-  cc.strokeRect(0, options.shiftY                           , width, 0);
-  cc.strokeRect(0, options.shiftY - k * highestPeak * options.scaleY, width, 0);
+  cc.strokeStyle = "green";
+  const limit = k * highestPeak;
+  cc.stroke(line({x1: 0, x2: n, y1: limit, y2: limit, ...options}));
 
-  cc.strokeRect(period * options.scaleX, options.shiftY, 0, clarity * options.scaleY)
+  cc.strokeStyle = "red";
+  cc.stroke(line({x1: period, x2: period, y1: 0, y2: clarity, ...options}));
+  cc.fillStyle = "red";
+  cc.fill(dot(period, clarity, 3, options));
+}}/>
 
+
+const TwoWaveCanvas2: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
+  pitchDetector, tau
+}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+  const {width, height} = cc.canvas;
+  cc.clearRect(0, 0, width, height);
+  const {values, dataSize, n} = pitchDetector;
+  const maxIdx = getMaxIndex(values, n * 0.25);
+  const limit = 0.98 * values[maxIdx];
+  let offset = 0;
+  while (offset <= maxIdx && values[offset] < limit) offset++;
+  const rescale = Math.max(0.01, stdDev(values));
+  const options = {
+    to: dataSize,
+    scaleX: width / n,
+    scaleY: -30 / rescale,
+    shiftY: height / 2,
+  };
+  const optionsClose = {...options, close: true};
+  cc.stroke(zeroLine(options));
+  cc.strokeStyle = "blue";
+  const wave1 = (x: number) => values[x + offset];
+  const wave2 = (x: number) => {
+    const xPrime = x - tau;
+    return xPrime <= 0 ? values[x + offset] : values[xPrime + offset];
+  };
+  cc.fillStyle = "#cfc";
+  cc.fill(drawFunc(x => (wave1(x) - wave2(x))**2 / (rescale * 10), optionsClose));
+  cc.stroke(drawFunc(wave1, options));
+  cc.strokeStyle = "#66f";
+  cc.stroke(drawFunc(wave2, options));
+}}/>
+
+const SDFCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
+  pitchDetector, tau
+}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+  const {width, height} = cc.canvas;
+  cc.clearRect(0, 0, width, height);
+  const {rs, m1s, m2s, n} = pitchDetector;
+  const m   = (tau: number) => m1s[tau] + m2s[tau]
+  const sdf = (tau: number) => m(tau) / 2 - rs[tau];
+  const options =  {
+    to: n,
+    scaleX: width / n,
+    scaleY: -height / m(0),
+    shiftY: height,
+  };
+  cc.fillStyle = "#ccf";
+  cc.fill(drawFunc(m, {...options, close: true}));
+  cc.stroke(zeroLine(options));
+  cc.strokeStyle = "blue";
+  cc.stroke(drawFunc(sdf, options));
+  cc.fillStyle = "green";
+  const value = sdf(tau);
+  cc.fill(dot(tau, value, 4, options));
+  cc.strokeStyle = "green";
+  cc.stroke(line({x1: tau, x2: tau, y1: 0, y2: value, ...options}));
+}}/>
+
+const NSDF2Canvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
+  pitchDetector
+}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+  const {width, height} = cc.canvas;
+  cc.clearRect(0, 0, width, height);
+  const {rs, m1s, m2s, nsdf, n} = pitchDetector;
+  const m   = (tau: number) => (m1s[tau] + m2s[tau])/2;
+  const sdf = (tau: number) => m(tau) - rs[tau];
+  // const nsdf2 = (tau: number) => sdf(tau) / 2 / m(tau);
+  // const nsdf3 = (tau: number) => (1 - rs[tau] / m(tau)) / 2;
+  const nsdf4 = (tau: number) => (1 - nsdf[tau]) / 2;
+  const options = {
+    to: n,
+    scaleX: width / n,
+    scaleY: -height / nsdf[0],
+    shiftY: height,
+  }
+  cc.strokeStyle = "blue";
+  cc.stroke(drawFunc(nsdf4, options));
 }}/>

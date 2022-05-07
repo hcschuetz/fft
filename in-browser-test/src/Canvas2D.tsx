@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { CanvasHTMLAttributes, DetailedHTMLProps, FC, useEffect, useRef, useState } from "react";
 import { useAnimationFrames } from "./animationFrames";
 
 type AnimateCanvas2D = (
@@ -6,7 +6,11 @@ type AnimateCanvas2D = (
   canvasContext: CanvasRenderingContext2D
 ) => void;
 
-const Canvas2D: FC<{width: number, height: number, animate: AnimateCanvas2D}> = props => {
+type CanvasProps =
+  DetailedHTMLProps<CanvasHTMLAttributes<HTMLCanvasElement>, HTMLCanvasElement>;
+type Canvas2DProps = CanvasProps & {animate: AnimateCanvas2D};
+
+const Canvas2D: FC<Canvas2DProps> = ({animate, ...canvasProps}) => {
   const time = useAnimationFrames();
   const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -14,7 +18,7 @@ const Canvas2D: FC<{width: number, height: number, animate: AnimateCanvas2D}> = 
   if (canvasContext) {
     canvasContext.save();
     try {
-      props.animate(time, canvasContext);
+      animate(time, canvasContext);
     } finally {
       canvasContext.restore();
     }
@@ -22,7 +26,7 @@ const Canvas2D: FC<{width: number, height: number, animate: AnimateCanvas2D}> = 
   useEffect(() => {
     setCanvasContext(canvas?.getContext("2d") ?? null);
   }, [canvas]);
-  return <canvas ref={canvasRef} style={{border: "1px solid green"}} width={props.width} height={props.height}/>;
+  return <canvas ref={canvasRef} {...canvasProps}/>;
 }
 
 export default Canvas2D;
