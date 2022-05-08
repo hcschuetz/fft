@@ -682,12 +682,12 @@ const TwoWaveCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
     const xPrime = x - tau;
     return xPrime <= 0 ? 0 : values[xPrime + offset];
   };
-  cc.fillStyle = "#cfc";
+  cc.fillStyle = "#0f04";
   cc.fill(drawFunc(x => Math.max(0, wave1(x) * wave2(x)) / (rescale * 2), optionsClose));
-  cc.fillStyle = "#fcc";
+  cc.fillStyle = "#f004";
   cc.fill(drawFunc(x => Math.min(0, wave1(x) * wave2(x)) / (rescale * 2), optionsClose));
   cc.stroke(drawFunc(wave1, options));
-  cc.strokeStyle = "#66f";
+  cc.strokeStyle = "#00f8";
   cc.stroke(drawFunc(wave2, options));
 }}/>
 
@@ -707,7 +707,7 @@ const AutoCorrCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
     shiftY: height/2,
   };
   const optionsClose = {...options, close: true};
-  cc.fillStyle = "#ccf";
+  cc.fillStyle = "#00f2";
   cc.fill(drawFunc(tau => +m(tau), optionsClose));
   cc.fill(drawFunc(tau => -m(tau), optionsClose));
   cc.stroke(zeroLine(options));
@@ -778,10 +778,10 @@ const TwoWaveCanvas2: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
     const xPrime = x - tau;
     return xPrime <= 0 ? values[x + offset] : values[xPrime + offset];
   };
-  cc.fillStyle = "#cfc";
+  cc.fillStyle = "#0f04";
   cc.fill(drawFunc(x => (wave1(x) - wave2(x))**2 / (rescale * 10), optionsClose));
   cc.stroke(drawFunc(wave1, options));
-  cc.strokeStyle = "#66f";
+  cc.strokeStyle = "#00f8";
   cc.stroke(drawFunc(wave2, options));
 }}/>
 
@@ -799,7 +799,7 @@ const SDFCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
     scaleY: -height / m(0),
     shiftY: height,
   };
-  cc.fillStyle = "#ccf";
+  cc.fillStyle = "#00f2";
   cc.fill(drawFunc(m, {...options, close: true}));
   cc.stroke(zeroLine(options));
   cc.strokeStyle = "blue";
