@@ -318,9 +318,6 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           measured in sampling steps.  This period can be converted
           into a frequency and a musical note in the usual way.
           The height of the chosen peak is returned as the "clarity" of the wave.
-          The closer 
-            The closer 
-          The closer 
           (You can see the current pitch frequency, note, and clarity
           at the beginning of the demo.)
         </li>
