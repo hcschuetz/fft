@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { FFTFactory } from "fft-api/dst";
 
 import { animationFrame } from "./animationFrames";
@@ -219,7 +219,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <WaveCanvas pitchDetector={pitchDetector}/>
       <p>
         <label>
-          You can freeze the audio input so that you need not sing all the time: {}
+          You can freeze the audio input so that you need not be singing all the time: {}
           <input type= "checkbox" checked={freeze} onChange={event => setFreeze(event.target.checked)}/>
         </label>
       </p>
@@ -236,8 +236,8 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       </div>
       <TwoWaveCanvas pitchDetector={pitchDetector} tau={tau}/>
       <p>
-        The product of the two waves at each point of time is shown
-        in green where positive and red where negative.
+        The product of the two waves at each point of time in the overlap region
+        is shown in green where positive and red where negative.
         The "autocorrelation" is defined as the integral over this product,
         or actually a sum since we are using discrete samples:
       </p>
@@ -658,7 +658,6 @@ const WaveCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
     scaleY: -30 / Math.max(0.01, stdDev(values)),
     shiftY: height / 2,
   };
-  console.log(offset, options)
   cc.stroke(zeroLine(options));
   cc.strokeStyle = "blue";
   cc.stroke(drawFunc(x => values[x + offset], options));
@@ -823,9 +822,9 @@ const NSDF2Canvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
 }) => <Canvas2D {...canvasProps} animate={(t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
-  const {rs, m1s, m2s, nsdf, n} = pitchDetector;
-  const m   = (tau: number) => (m1s[tau] + m2s[tau])/2;
-  const sdf = (tau: number) => m(tau) - rs[tau];
+  const {/* rs, m1s, m2s, */ nsdf, n} = pitchDetector;
+  // const m   = (tau: number) => (m1s[tau] + m2s[tau])/2;
+  // const sdf = (tau: number) => m(tau) - rs[tau];
   // const nsdf2 = (tau: number) => sdf(tau) / 2 / m(tau);
   // const nsdf3 = (tau: number) => (1 - rs[tau] / m(tau)) / 2;
   const nsdf4 = (tau: number) => (1 - nsdf[tau]) / 2;
