@@ -80,7 +80,6 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     init: 100, transform: x => x,
   });
   const [showOrig, setShowOrig] = useState(false);
-  // TODO: provide space for the output of the following slider
   const [machineryDisplayLabel, machineryDisplaySlider, machineryDisplay] = useSlider({
     id: "machineryDisplayCW", label: "Display machinery:",
     min: 0, max: machineryDisplays.length - 1,
