@@ -334,7 +334,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <p>
         This autocovariance can be normalized to an actual autocorrelation
         as usual in statistics by dividing it
-        by the standard deviations of the two waves in the overlap:
+        by the standard deviations of the two waves in the overlap region:
       </p>
       <blockquote><F>
         ρ<sub>t</sub> <P>τ</P> <DEF/> cov<sub>t</sub> <P>τ</P> / {}
