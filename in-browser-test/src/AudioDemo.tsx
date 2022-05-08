@@ -336,20 +336,35 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         as usual in statistics by dividing it
         by the standard deviations of the two waves in the overlap region:
       </p>
-      <blockquote><F>
-        ρ<sub>t</sub> <P>τ</P> <DEF/> cov<sub>t</sub> <P>τ</P> / {}
-        <P>σ<sub>t</sub> <P>τ</P> σ<sub>t+τ</sub> <P>τ</P></P></F></blockquote>
+      <blockquote>
+        <F>
+          ρ'<sub>t</sub> <P>τ</P> <DEF/> cov'<sub>t</sub> <P>τ</P> / {}
+          <P>σ'<sub>t</sub> <P>τ</P> σ'<sub>t+τ</sub> <P>τ</P></P>
+        </F>
+      </blockquote>
       <p>where the covariance and the standard deviations are defined as</p>
       <blockquote>
-        <F>cov<sub>t</sub> <P>τ</P> <DEF/> ∑ x<sub>i</sub> x<sub>i+τ</sub></F>
+        <F>cov'<sub>t</sub> <P>τ</P> <DEF/> ∑ x<sub>i</sub> x<sub>i+τ</sub></F>
         <br/>
-        <F>σ<sub>t</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i</sub><SQ/> </SQRT></F>
+        <F>σ'<sub>t</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i</sub><SQ/> </SQRT></F>
         <br/>
-        <F>σ<sub>t+τ</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i+τ</sub><SQ/> </SQRT></F>
+        <F>σ'<sub>t+τ</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i+τ</sub><SQ/> </SQRT></F>
       </blockquote>
       <p>
+        The primes behind the symbols <F>ρ</F>, <F>cov</F>, and <F>σ</F> {}
+        indicate again that these are "type-II" functions.
+        That is, the summation index <F>i</F> runs from <F>t</F> to
+        {} <F>t + W − <N>1</N> − τ</F>.
+      </p>
+      <p>
+        According to standard terminology
+        all our summations would have to be divided by the number of terms,
+        that is, by the overlap size <F>W − τ</F>.
+        But in the autocorrelation formula these divisors cancel each other out.
+      </p>
+      <p>
         Notice that in our normalization formula the denominator
-        {} <F>σ<sub>t</sub> <P>τ</P> σ<sub>t+τ</sub> <P>τ</P></F> {}
+        {} <F>σ'<sub>t</sub> <P>τ</P> σ'<sub>t+τ</sub> <P>τ</P></F> {}
         is actually the <em>geometric</em> mean of the variances
         {} <F>∑ x<sub>i</sub><SQ/></F> and
         {} <F>∑ x<sub>i+τ</sub><SQ/></F>.
@@ -358,15 +373,6 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         In practice this does not make much of a difference.
         So McLeod's "Normalized Square Difference Function" is actually
         quite close to what I would call an autocorrelation function.
-      </p>
-      <p>
-        Finally, you may have noticed that according to standard terminology
-        all our summations would have to be divided by the number of terms,
-        that is, by the overlap size <F>W − τ</F>.
-        But in the autocorrelation formula these divisors cancel each other out.
-        (Furthermore we might add primes to the function names
-        {} <F>ρ</F>, <F>cov</F>, and <F>σ</F> {}
-        to indicate that these are type-II functions with tapering.)
       </p>
       <h2>The Squared Difference Function</h2>
       <p>
@@ -467,8 +473,11 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <p>
         When the delay <F>τ</F> gets close to the window size <F>W</F> the
         overlap <F>W − τ</F> of the two waves gets short.
-        This lets the normalized values (McLeod/Wyvill's NSDF function or my
-        autocorrelation from the previous section) become statistically unstable.
+        This lets the normalized values
+        (<F>n'<sub>t</sub> <P>τ</P></F>,
+        {} <F>ρ<sub>t</sub> <P>τ</P></F>, and
+        {} <F>d'<sub>t</sub> <P>τ</P></F>)
+        become statistically unstable.
         We easily get the highest peak for <F>τ</F> close to <F>W</F> and
         with a noisy signal that peak is also selected for the pitch period.
       </p>
