@@ -100,7 +100,7 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     init: 6, transform: x => x/120,
   });
   return (
-    <RoundsProvider speed={speed}>
+    <>
       <ParameterTable>
         <tr>
           <td><label htmlFor="showOrigCW">Display original shape</label></td>
@@ -149,10 +149,12 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           <td style={{width: "7.5em"}}>{techs[tech]}</td>
         </tr>
       </ParameterTable>
-      <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace, tech}}>
-        <ClockworkGraphics fftFactory={fftFactory}/>
-      </ConfigContext.Provider>
-    </RoundsProvider>
+      <RoundsProvider speed={speed}>
+        <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace, tech}}>
+          <ClockworkGraphics fftFactory={fftFactory}/>
+        </ConfigContext.Provider>
+      </RoundsProvider>
+    </>
   );
 }
 
