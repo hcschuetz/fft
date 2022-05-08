@@ -100,6 +100,11 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
 
       for (;;) {
         await animationFrame(setAnimationFrameId);
+        if (freeze) {
+          // It's a bit hacky to poll `freeze` upon each animation frame,
+          // but for a demo it's ok.
+          continue;
+        }
         analyser.getByteFrequencyData(freqData);
         cc.putImageData(cc.getImageData(stepWidth, 0, width - stepWidth, height), 0, 0);
         let k = 0;
@@ -139,7 +144,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       }
     }
 
-    if (cc && !freeze) {
+    if (cc) {
       loop(cc);
     }
     return () => {
