@@ -292,37 +292,39 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         This function is called the "Normalized Square Difference Function"
         (NSDF) <F>n'<sub>t</sub> <P>τ</P></F> in the McLeod/Wyvill paper.
         It is used to determine the pitch as follows:
-        <ul>
-          <li>
-            For each positive range between an upward and a downward zero
-            crossing the maximum value is determined.
-            Actually such a maximum need not occur at a sampling point.
-            Parabolic interpolation is used for a better approximation of the
-            peak which we would get with continuous sampling.
-            (These peaks are marked by bullets in the graph.)
-          </li>
-          <li>
-            The highest of these peaks is determined (marked by a green bullet)
-            and a cut-off at some constant percentage of this peak height is calculated.
-            In our demo the cut-off percentage is 93%.
-            (The cut-off level is marked by a green line.)
-          </li>
-          <li>
-            The first peak above the cut-off level is chosen
-            (marked by a red bullet and a vertical red line in the graph).
-            It may be the same as the highest peak or a different one.
-          </li>
-          <li>
-            The <F>τ</F> value for this peak is the "pitch period"
-            measured in sampling steps.  This period can be converted
-            into a frequency and a musical note in the usual way.
-            The height of the chosen peak is returned as the "clarity" of the wave.
-            The closer 
-            (You can see the current pitch frequency, note, and clarity
-            at the beginning of the demo.)
-          </li>
-        </ul>
       </p>
+      <ul>
+        <li>
+          For each positive range between an upward and a downward zero
+          crossing the maximum value is determined.
+          Actually such a maximum need not occur at a sampling point.
+          Parabolic interpolation is used for a better approximation of the
+          peak which we would get with continuous sampling.
+          (These peaks are marked by bullets in the graph.)
+        </li>
+        <li>
+          The highest of these peaks is determined (marked by a green bullet)
+          and a cut-off at some constant percentage of this peak height is calculated.
+          In our demo the cut-off percentage is 93%.
+          (The cut-off level is marked by a green line.)
+        </li>
+        <li>
+          The first peak above the cut-off level is chosen
+          (marked by a red bullet and a vertical red line in the graph).
+          It may be the same as the highest peak or a different one.
+        </li>
+        <li>
+          The <F>τ</F> value for this peak is the "pitch period"
+          measured in sampling steps.  This period can be converted
+          into a frequency and a musical note in the usual way.
+          The height of the chosen peak is returned as the "clarity" of the wave.
+          The closer 
+            The closer 
+          The closer 
+          (You can see the current pitch frequency, note, and clarity
+          at the beginning of the demo.)
+        </li>
+      </ul>
       <h2>A Note on Terminology</h2>
       <p>
         What McLeod/Wyvill and also the previous section call
