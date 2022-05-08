@@ -14,7 +14,7 @@ const TAU = 2 * Math.PI;
 
 
 export const Clockwork: FC<{}> = () => (
-  <div style={{height: "100%", overflowY: "auto"}}>
+  <div style={{width: 600, height: "100%", overflowY: "auto"}}>
     <h1>Clockwork Demo</h1>
     <Clockwork2/>
   </div>
@@ -49,7 +49,7 @@ const RoundsProvider: FC<{speed: number}> = ({speed, children}) => {
 const useRounds = () => useContext(RoundsContext);
 
 const machineryDisplays = ["nothing", "hands", "hands and dials"];
-const techs = ["canvas", "svg"];
+const techs = ["canvas", "SVG"];
 
 /*
 What else we might make configurable:
@@ -154,6 +154,20 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           <ClockworkGraphics fftFactory={fftFactory}/>
         </ConfigContext.Provider>
       </RoundsProvider>
+      <p>
+        Observations:
+      </p>
+      <ul>
+        <li>
+          For the time being (spring 2022) Chrome is faster than Firefox
+          and thus provides smoother motion.
+        </li>
+        <li>
+          On both Chrome and Firefox the canvas-based implementation is
+          significantly faster/smoother than the SVG-based implementation.
+          This is particularly noticeable with a high number of hands.
+        </li>
+      </ul>
     </>
   );
 }
