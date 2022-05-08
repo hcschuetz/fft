@@ -238,7 +238,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       </p>
       <blockquote><F>∑ x<sub>i</sub> x<sub>i+τ</sub></F></blockquote>
       <p>
-        where <F>i</F> runs from <F>t</F> to <F>t+W-<N>1</N>-τ</F> in the summation.
+        where <F>i</F> runs from <F>t</F> to <F>t + W − <N>1</N> − τ</F> in the summation.
         Here <F>t</F> is the index of the first sample in the time window,
         {} <F>W</F> is the window length, and <F>τ</F> is the delay.
       </p>
@@ -261,9 +261,9 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       </p>
       <p>
         The absolute product <F>|ab|</F> of two (real) numbers is always smaller
-        than the average of their squares <F>½ <P>a<SQ/>+b<SQ/></P></F>.
+        than the average of their squares <F>½ <P>a<SQ/> + b<SQ/></P></F>.
         When <F>a</F> and <F>b</F> get close to each other,
-        then <F>|ab|</F> gets close to <F>½ <P>a<SQ/>+b<SQ/></P></F> as well.
+        then <F>|ab|</F> gets close to <F>½ <P>a<SQ/> + b<SQ/></P></F> as well.
         As a consequence the autocorrelation value
         {} <F>∑ x<sub>i</sub> x<sub>i+τ</sub></F> {}
         ranges between
@@ -271,7 +271,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         and
         {} <F>+½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F>,
         which we can consider the best and worst case for the correlation.
-        (Again <F>i</F> runs from <F>t</F> to <F>t+W-<N>1</N>-τ</F> in the summations.)
+        (Again <F>i</F> runs from <F>t</F> to <F>t + W − <N>1</N> − τ</F> in the summations.)
         This is the area highlighted in the graph above.
         Notice that the sum
         {} <F>∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
@@ -280,7 +280,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <p>
         We divide the autocorrelation function by
         {} <F>½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
-        to normalize it to the range [-1, +1]:
+        to normalize it to the range [−1, +1]:
       </p>
       <NSDFCanvas pitchDetector={pitchDetector}/>
       <p>
@@ -332,13 +332,15 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         by the standard deviations of the two waves in the overlap:
       </p>
       <blockquote><F>
-        <P> ∑ x<sub>i</sub> x<sub>i+τ</sub> </P> / {}
+        ρ<sub>t</sub> <P>τ</P> <DEF/> cov<sub>t</sub> <P>τ</P> / {}
         <P>σ<sub>t</sub> <P>τ</P> σ<sub>t+τ</sub> <P>τ</P></P></F></blockquote>
-      <p>where the standard deviations are defined like this:</p>
+      <p>where the covariance and the standard deviations are defined as</p>
       <blockquote>
-        <F>σ<sub>t</sub> <P>τ</P> = <SQRT> ∑ x<sub>i</sub><SQ/> </SQRT></F>
+        <F>cov<sub>t</sub> <P>τ</P> <DEF/> ∑ x<sub>i</sub> x<sub>i+τ</sub></F>
         <br/>
-        <F>σ<sub>t+τ</sub> <P>τ</P> = <SQRT> ∑ x<sub>i+τ</sub><SQ/> </SQRT></F>
+        <F>σ<sub>t</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i</sub><SQ/> </SQRT></F>
+        <br/>
+        <F>σ<sub>t+τ</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i+τ</sub><SQ/> </SQRT></F>
       </blockquote>
       <p>
         Notice that in our normalization formula the denominator
@@ -355,8 +357,11 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <p>
         Finally, you may have noticed that according to standard terminology
         all our summations would have to be divided by the number of terms,
-        that is, by the overlap size <F>W-τ</F>.
+        that is, by the overlap size <F>W − τ</F>.
         But in the autocorrelation formula these divisors cancel each other out.
+        (And of course we might add primes to
+        {} <F>ρ</F>, <F>cov</F>, and <F>σ</F> {}
+        to indicate that these are type-II functions with tapering.)
       </p>
       <h2>The Squared Difference Function</h2>
       <p>
@@ -403,17 +408,17 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         <F>
           d'<sub>t</sub> <P>τ</P>
           {} = {}
-          ∑ <P>x<sub>i</sub> - x<sub>i+τ</sub></P><SQ/>
+          ∑ <P>x<sub>i</sub> − x<sub>i+τ</sub></P><SQ/>
           {} = {}
-          ∑ <P>x<sub>i</sub><SQ/> - 2 x<sub>i</sub> x<sub>i+τ</sub> + x<sub>i+τ</sub><SQ/></P>
+          ∑ <P>x<sub>i</sub><SQ/> − 2 x<sub>i</sub> x<sub>i+τ</sub> + x<sub>i+τ</sub><SQ/></P>
           {} = {}
-          ∑ x<sub>i</sub><SQ/> - 2 ∑ x<sub>i</sub> x<sub>i+τ</sub> + ∑ x<sub>i+τ</sub><SQ/>
+          ∑ x<sub>i</sub><SQ/> − 2 ∑ x<sub>i</sub> x<sub>i+τ</sub> + ∑ x<sub>i+τ</sub><SQ/>
         </F>
       </blockquote>
       <p>
         Using our earlier result that {}
         <F>∑ x<sub>i</sub> x<sub>i+τ</sub> &gt;
-        -½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
+        −½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
         we can conclude that
       </p>
       <blockquote>
@@ -456,7 +461,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <h2>A Note on Tapering</h2>
       <p>
         When the delay <F>τ</F> gets close to the window size <F>W</F> the
-        overlap <F>W-τ</F> of the two waves gets short.
+        overlap <F>W − τ</F> of the two waves gets short.
         This lets the normalized values (McLeod/Wyvill's NSDF function or my
         autocorrelation from the previous section) become statistically unstable.
         We easily get the highest peak for <F>τ</F> close to <F>W</F> and
@@ -519,6 +524,8 @@ const F = styled.span`
 const N = styled.span`
   font-style: normal;
 `;
+
+const DEF: FC = () => <N>≔</N>
 
 const P: FC = ({children}) => <><N>(</N>{children}<N>)</N></>;
 
