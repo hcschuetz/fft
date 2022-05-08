@@ -1,6 +1,6 @@
 import { abs2, Complex, expi, times, timesScalar, zero } from "complex/dst/Complex";
 import { FFT, FFTFactory } from "fft-api/dst";
-import { createContext, FC, useContext, useEffect, useRef, useState } from "react";
+import { CanvasHTMLAttributes, createContext, DetailedHTMLProps, FC, useContext, useEffect, useRef, useState } from "react";
 import { useAnimationFrames } from "./animationFrames";
 import filledArray from "./filledArray";
 import ParameterTable from "./ParameterTable";
@@ -48,6 +48,7 @@ const RoundsProvider: FC<{speed: number}> = ({speed, children}) => {
 const useRounds = () => useContext(RoundsContext);
 
 const machineryDisplays = ["nothing", "hands", "hands and dials"];
+const techs = ["canvas", "svg"];
 
 /*
 What else we might make configurable:
@@ -66,6 +67,7 @@ type Config = {
   showOrig: boolean,
   machineryDisplay: number,
   showTrace: boolean,
+  tech: number,
 };
 const ConfigContext = createContext<Config | undefined>(undefined);
 const useConfig = (): Config => useContext(ConfigContext)!;
@@ -84,6 +86,11 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     id: "machineryDisplayCW", label: "Display machinery:",
     min: 0, max: machineryDisplays.length - 1,
     init: 2, transform: x => x,
+  });
+  const [techLabel, techSlider, tech] = useSlider({
+    id: "techCW", label: "Technology:",
+    min: 0, max: techs.length - 1,
+    init: 0, transform: x => x,
   });
   const [showTrace, setShowTrace] = useState(true);
   const [speedLabel, speedSlider, speed] = useSlider({
@@ -135,8 +142,13 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
             />
           </td>
         </tr>
+        <tr>
+          <td>{techLabel}</td>
+          <td style={{padding: "0 1em"}}>{techSlider}</td>
+          <td style={{width: "7.5em"}}>{techs[tech]}</td>
+        </tr>
       </ParameterTable>
-      <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace}}>
+      <ConfigContext.Provider value={{nHands, showOrig, machineryDisplay, showTrace, tech}}>
         <ClockworkGraphics fftFactory={fftFactory}/>
       </ConfigContext.Provider>
     </RoundsProvider>
@@ -187,18 +199,119 @@ const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     }
   }, [pathEl, fft, nHands]);
 
+  const {showOrig, machineryDisplay, showTrace, tech} = useConfig();
+  const animate = (rounds: number, cc: CanvasRenderingContext2D) => {
+    const {width, height} = cc.canvas;
+    cc.clearRect(0, 0, width, height);
+    const scale = 7.5 / width; // = 6.5 / height; // TODO extract constants
+    cc.scale(1 / scale, 1 / scale);
+    cc.translate(0, 0.4); // TODO extract constants
+    cc.lineWidth = 0.01;
+    const r = 0.02;
+    cc.translate(center.re, center.im);
+    cc.save();
+    for (const {k, c, abs} of [...rotations].reverse()) {
+      const offset = times(c, expi(k * TAU * rounds));
+      cc.strokeStyle = "black";
+      switch (machineryDisplay) {
+        // @ts-expect-error
+        case 2: {
+          // dial
+          cc.strokeStyle = "green";
+          cc.beginPath();
+          cc.arc(0, 0, abs, 0, TAU);
+          cc.stroke();
+        } // fall through
+        case 1: {
+          // center dot
+          cc.beginPath();
+          cc.arc(0, 0, r, 0, TAU);
+          cc.fill();
+          // hand
+          cc.beginPath();
+          cc.moveTo(0, 0);
+          cc.lineTo(offset.re, offset.im);
+          cc.stroke();
+        }
+      }
+      // prepare for the next round
+      cc.translate(offset.re, offset.im);
+    }
+    cc.beginPath();
+    cc.arc(0, 0, 0.05, 0, TAU);
+    cc.fillStyle = "red";
+    cc.fill();
+    cc.restore();
+    if (showTrace) {
+      // fading loop
+      // TODO paint as a single path with gradient fading?
+      approxPath.forEach((p, i, path) => {
+        const p1 = path[(i-1+path.length) % path.length];
+        const p2 = p;
+        cc.beginPath();
+        cc.moveTo(p1.re, p1.im);
+        cc.lineTo(p2.re, p2.im);
+        cc.lineWidth = 0.05;
+        cc.strokeStyle= `rgba(255, 0, 0, ${fadeOut((1 + i/path.length - rounds % 1) % 1)})`;
+        cc.stroke();
+      });
+    }
+  }
+
   return (
-    <svg width={450} height={390} viewBox="0 -0.4 7.5 6.5" style={{border: "1px solid black"}}>
-      <path ref={pathRef}
-        style={{stroke: useConfig().showOrig ? "blue": "none", strokeWidth: 0.05, fill: "none"}}
-        // The following example path data is taken from https://de.wikipedia.org/wiki/Datei:Pi-CM.svg
-        // with a small modification to work around Firefox bug https://bugzilla.mozilla.org/show_bug.cgi?id=1507603
-        d="M3.37946 0.704598l1.47444 0c-0.352299,1.46139 -0.574116,2.4139 -0.574116,3.45775 0,0.182674 0,1.59404 0.534973,1.59404 0.274009,0 0.508875,-0.25009 0.508875,-0.471907 0,-0.065241 0,-0.0913388 -0.0913351,-0.287058 -0.352299,-0.900321 -0.3523,-2.02246 -0.352299,-2.11379 0,-0.0782899 0,-1.00471 0.274009,-2.17904l1.46139 0c0.169629,0 0.600214,0 0.600214,-0.41754 0,-0.287058 -0.247915,-0.287058 -0.482781,-0.287058l-4.29283 0c-0.300103,0 -0.743741,0 -1.34396,0.639357 -0.33925,0.378393 -0.75679,1.06995 -0.75679,1.14823 0,0.0782899 0.065241,0.104388 0.143531,0.104388 0.0913351,0 0.104384,-0.0391468 0.169625,-0.117433 0.6785,-1.06995 1.357,-1.06995 1.68321,-1.06995l0.743745 0c-0.287062,0.978607 -0.613263,2.11379 -1.68321,4.39721 -0.104384,0.208768 -0.104384,0.234866 -0.104384,0.313156 0,0.276184 0.234866,0.341425 0.352299,0.341425 0.378397,0 0.482781,-0.341425 0.639357,-0.889447 0.208772,-0.665455 0.208772,-0.691549 0.33925,-1.21347l0.75679 -2.94887z"
-      />
-      <Moving center={center} rotations={rotations} approxPath={approxPath}/>
-    </svg>
+    <div style={{
+      position: "relative", width: 450, height: 390,
+      border: "1px solid black",
+    }}>
+      <svg
+        style={{position: "absolute", top: 0, left: 0}}
+        width={450} height={390} viewBox="0 -0.4 7.5 6.5"
+      >
+        <path ref={pathRef}
+          style={{stroke: showOrig ? "blue": "none", strokeWidth: 0.05, fill: "none"}}
+          // The following example path data is taken from https://de.wikipedia.org/wiki/Datei:Pi-CM.svg
+          // with a small modification to work around Firefox bug https://bugzilla.mozilla.org/show_bug.cgi?id=1507603
+          d="M3.37946 0.704598l1.47444 0c-0.352299,1.46139 -0.574116,2.4139 -0.574116,3.45775 0,0.182674 0,1.59404 0.534973,1.59404 0.274009,0 0.508875,-0.25009 0.508875,-0.471907 0,-0.065241 0,-0.0913388 -0.0913351,-0.287058 -0.352299,-0.900321 -0.3523,-2.02246 -0.352299,-2.11379 0,-0.0782899 0,-1.00471 0.274009,-2.17904l1.46139 0c0.169629,0 0.600214,0 0.600214,-0.41754 0,-0.287058 -0.247915,-0.287058 -0.482781,-0.287058l-4.29283 0c-0.300103,0 -0.743741,0 -1.34396,0.639357 -0.33925,0.378393 -0.75679,1.06995 -0.75679,1.14823 0,0.0782899 0.065241,0.104388 0.143531,0.104388 0.0913351,0 0.104384,-0.0391468 0.169625,-0.117433 0.6785,-1.06995 1.357,-1.06995 1.68321,-1.06995l0.743745 0c-0.287062,0.978607 -0.613263,2.11379 -1.68321,4.39721 -0.104384,0.208768 -0.104384,0.234866 -0.104384,0.313156 0,0.276184 0.234866,0.341425 0.352299,0.341425 0.378397,0 0.482781,-0.341425 0.639357,-0.889447 0.208772,-0.665455 0.208772,-0.691549 0.33925,-1.21347l0.75679 -2.94887z"
+        />
+        {tech === 1 &&
+          <Moving center={center} rotations={rotations} approxPath={approxPath}/>
+        }
+      </svg>
+      {tech === 0 &&
+        <CanvasDisplay
+          style={{position: "absolute", top: 0, left: 0}}
+          width={450} height={390} animate={animate}
+        />
+      }
+    </div>
   );
 }
+
+type Animate = (rounds: number, cc: CanvasRenderingContext2D) => void;
+
+type CanvasProps =
+  DetailedHTMLProps<CanvasHTMLAttributes<HTMLCanvasElement>, HTMLCanvasElement>;
+type Canvas2DProps = CanvasProps & {animate: Animate};
+
+/** Like `<Canvas2D/>` but based on rounds rather than time */
+const CanvasDisplay: FC<Canvas2DProps> = ({animate, ...canvasProps}) => {
+  const rounds = useRounds();
+  const [cc, setCC] = useState<CanvasRenderingContext2D | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvas = canvasRef.current;
+  if (cc) {
+    cc.save();
+    try {
+      animate(rounds, cc);
+    } finally {
+      cc.restore();
+    }
+  }
+  useEffect(() => {
+    setCC(canvas?.getContext("2d") ?? null);
+  }, [canvas]);
+  return <canvas ref={canvasRef} {...canvasProps}/>;
+};
 
 const Translate: FC<{offset: Complex}> = ({offset, children}) => (
   <g transform={`translate(${offset.re}, ${offset.im})`}>
