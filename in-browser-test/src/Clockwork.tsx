@@ -13,7 +13,7 @@ const TAU = 2 * Math.PI;
 
 
 export const Clockwork: FC<{}> = () => (
-  <div>
+  <div style={{height: "100%", overflowY: "auto"}}>
     <h1>Clockwork Demo</h1>
     <Clockwork2/>
   </div>
