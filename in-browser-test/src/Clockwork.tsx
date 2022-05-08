@@ -247,7 +247,10 @@ const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     cc.restore();
     if (showTrace) {
       // fading loop
-      // TODO paint as a single path with gradient fading?
+      // Canvases apparently do not support gradients *along* a path.
+      // So we split the path manually and assign appropriate colors
+      // (or actually alpha values for the fading effect) to the segments.
+      // Unfortunately the segment line-up is not completely smooth.
       approxPath.forEach((p, i, path) => {
         const p1 = path[(i-1+path.length) % path.length];
         const p2 = p;
@@ -255,7 +258,13 @@ const ClockworkGraphics: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         cc.moveTo(p1.re, p1.im);
         cc.lineTo(p2.re, p2.im);
         cc.lineWidth = 0.05;
-        cc.strokeStyle= `rgba(255, 0, 0, ${fadeOut((1 + i/path.length - rounds % 1) % 1)})`;
+        const alpha = fadeOut((1 + i/path.length - rounds % 1) % 1);
+        cc.strokeStyle= `rgba(255, 0, 0, ${alpha})`;
+        // Hack: For opaque segments it is better if they overlap a bit
+        // whereas transparent segments should not overlap.
+        // (A cleaner solution might be possible using one of the
+        // less usual compositing modes.)
+        cc.lineCap = alpha < 0.8 ? "butt" : "round"
         cc.stroke();
       });
     }
