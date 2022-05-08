@@ -209,7 +209,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
 
       <h2>Visual Explanation of the McLeod Pitch-Detection Method</h2>
       <p>
-        The pitch computation used above is based on the paper {}
+        The pitch displayed above is computed according to the paper {}
         <a href="https://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf">
           <em>A Smarter Way to Find Pitch</em>
         </a> by P. McLeod and G. Wyvill.
@@ -364,7 +364,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         all our summations would have to be divided by the number of terms,
         that is, by the overlap size <F>W − τ</F>.
         But in the autocorrelation formula these divisors cancel each other out.
-        (And of course we might add primes to
+        (Furthermore we might add primes to the function names
         {} <F>ρ</F>, <F>cov</F>, and <F>σ</F> {}
         to indicate that these are type-II functions with tapering.)
       </p>
@@ -373,8 +373,8 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         While the approach described above attempts
         to maximize the correlation between the original and the delayed wave,
         we can also try to minimize the differences between the two waves.
-        (Actually we sqare the differences so that differences in both directions
-        contribute to the "badness" measure.)
+        Actually we square the differences so that differences in both directions
+        contribute to the "badness" measure.
       </p>
       <p>
         <label>
