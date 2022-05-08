@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { FFTFactory } from "fft-api/dst";
 
 import { animationFrame } from "./animationFrames";
@@ -638,7 +638,7 @@ const canvasProps = {
 
 const WaveCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   pitchDetector
-}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={useMemo(() => (t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {values, dataSize, n} = pitchDetector;
@@ -655,11 +655,11 @@ const WaveCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   cc.stroke(zeroLine(options));
   cc.strokeStyle = "blue";
   cc.stroke(drawFunc(x => values[x + offset], options));
-}}/>
+}, [pitchDetector])}/>
 
 const TwoWaveCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   pitchDetector, tau
-}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={useMemo(() => (t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {values, dataSize, n} = pitchDetector;
@@ -689,11 +689,11 @@ const TwoWaveCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   cc.stroke(drawFunc(wave1, options));
   cc.strokeStyle = "#00f8";
   cc.stroke(drawFunc(wave2, options));
-}}/>
+}, [pitchDetector, tau])}/>
 
 const AutoCorrCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   pitchDetector, tau
-}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={useMemo(() => (t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {rs, m1s, m2s, n} = pitchDetector;
@@ -718,11 +718,11 @@ const AutoCorrCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   cc.fill(dot(tau, rs[tau], 4, options));
   cc.strokeStyle = "blue";
   cc.stroke(drawFunc(tau => rs[tau], options));
-}}/>
+}, [pitchDetector, tau])}/>
 
 const NSDFCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   pitchDetector
-}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={useMemo(() => (t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {nsdf, n, peaks, highestPeak, k, period, clarity} = pitchDetector;
@@ -750,12 +750,12 @@ const NSDFCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   cc.stroke(line({x1: period, x2: period, y1: 0, y2: clarity, ...options}));
   cc.fillStyle = "red";
   cc.fill(dot(period, clarity, 3, options));
-}}/>
+}, [pitchDetector])}/>
 
 
 const TwoWaveCanvas2: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   pitchDetector, tau
-}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={useMemo(() => (t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {values, dataSize, n} = pitchDetector;
@@ -783,11 +783,11 @@ const TwoWaveCanvas2: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   cc.stroke(drawFunc(wave1, options));
   cc.strokeStyle = "#00f8";
   cc.stroke(drawFunc(wave2, options));
-}}/>
+}, [pitchDetector, tau])}/>
 
 const SDFCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   pitchDetector, tau
-}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={useMemo(() => (t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {rs, m1s, m2s, n} = pitchDetector;
@@ -809,11 +809,11 @@ const SDFCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   cc.fill(dot(tau, value, 4, options));
   cc.strokeStyle = "green";
   cc.stroke(line({x1: tau, x2: tau, y1: 0, y2: value, ...options}));
-}}/>
+}, [pitchDetector, tau])}/>
 
 const NSDF2Canvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   pitchDetector
-}) => <Canvas2D {...canvasProps} animate={(t, cc) => {
+}) => <Canvas2D {...canvasProps} animate={useMemo(() => (t, cc) => {
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {/* rs, m1s, m2s, */ nsdf, n} = pitchDetector;
@@ -830,4 +830,4 @@ const NSDF2Canvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   }
   cc.strokeStyle = "blue";
   cc.stroke(drawFunc(nsdf4, options));
-}}/>
+}, [pitchDetector])}/>

@@ -1,5 +1,4 @@
 import { CanvasHTMLAttributes, DetailedHTMLProps, FC, useEffect, useRef, useState } from "react";
-import { useAnimationFrames } from "./animationFrames";
 
 type AnimateCanvas2D = (
   time: number,
@@ -8,10 +7,9 @@ type AnimateCanvas2D = (
 
 type CanvasProps =
   DetailedHTMLProps<CanvasHTMLAttributes<HTMLCanvasElement>, HTMLCanvasElement>;
-type Canvas2DProps = CanvasProps & {animate: AnimateCanvas2D};
+type Canvas2DProps = CanvasProps & {time?: number, animate: AnimateCanvas2D};
 
-const Canvas2D: FC<Canvas2DProps> = ({animate, ...canvasProps}) => {
-  const time = useAnimationFrames();
+const Canvas2D: FC<Canvas2DProps> = ({time = 0, animate, ...canvasProps}) => {
   const [canvasContext, setCanvasContext] = useState<CanvasRenderingContext2D | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const canvas = canvasRef.current;

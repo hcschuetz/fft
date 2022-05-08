@@ -2,6 +2,7 @@ import { abs2, Complex, expi, times, timesScalar, zero } from "complex/dst/Compl
 import { FFT, FFTFactory } from "fft-api/dst";
 import { CanvasHTMLAttributes, createContext, DetailedHTMLProps, FC, useContext, useEffect, useRef, useState } from "react";
 import { useAnimationFrames } from "./animationFrames";
+import Canvas2D from "./Canvas2D";
 import filledArray from "./filledArray";
 import ParameterTable from "./ParameterTable";
 import useSlider from "./useSlider";
@@ -293,25 +294,9 @@ type CanvasProps =
   DetailedHTMLProps<CanvasHTMLAttributes<HTMLCanvasElement>, HTMLCanvasElement>;
 type Canvas2DProps = CanvasProps & {animate: Animate};
 
-/** Like `<Canvas2D/>` but based on rounds rather than time */
-const CanvasDisplay: FC<Canvas2DProps> = ({animate, ...canvasProps}) => {
-  const rounds = useRounds();
-  const [cc, setCC] = useState<CanvasRenderingContext2D | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const canvas = canvasRef.current;
-  if (cc) {
-    cc.save();
-    try {
-      animate(rounds, cc);
-    } finally {
-      cc.restore();
-    }
-  }
-  useEffect(() => {
-    setCC(canvas?.getContext("2d") ?? null);
-  }, [canvas]);
-  return <canvas ref={canvasRef} {...canvasProps}/>;
-};
+const CanvasDisplay: FC<Canvas2DProps> = props => (
+  <Canvas2D time={useRounds()} {...props}/>
+);
 
 const Translate: FC<{offset: Complex}> = ({offset, children}) => (
   <g transform={`translate(${offset.re}, ${offset.im})`}>
