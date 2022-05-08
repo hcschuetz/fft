@@ -159,13 +159,29 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       </p>
       <ul>
         <li>
-          For the time being (spring 2022) Chrome is faster than Firefox
+          For the time being (spring 2022)
+          Chrome is faster than Firefox on my computer
           and thus provides smoother motion.
         </li>
         <li>
           On both Chrome and Firefox the canvas-based implementation is
           significantly faster/smoother than the SVG-based implementation.
           This is particularly noticeable with a high number of hands.
+          I see these possible reasons for this:
+          <ul>
+            <li>
+              The canvas implementations on Firefox and Chrome use the GPU,
+              whereas the SVG implementations apparently don't.
+            </li>
+            <li>
+              For SVG many numeric parameters have to be converted into strings
+              because the XML-based interface requires them.
+              Then the SVG implementation has to parse the strings back to numbers.
+            </li>
+            <li>
+              There might also be an overhead for the scalability of SVG.
+            </li>
+          </ul>
         </li>
       </ul>
     </>
