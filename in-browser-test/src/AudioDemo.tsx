@@ -73,7 +73,7 @@ const pos2freq = (pos: number): number => {
 
 const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
   const [pitchDetector] = useState(() =>
-    new McLeodPitchDetector(fftWindowSize, pitchWindowSize),
+    new McLeodPitchDetector(fftWindowSize, pitchWindowSize, fftFactory),
   );
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -129,6 +129,9 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           }
         }
         analyser.getFloatTimeDomainData(pitchDetector.values);
+        // Just to be consistent with the wave display:
+        // (Outside of a demo there is hardly a reason for changing the offset.)
+        pitchDetector.offset = getMaxIndex(pitchDetector.values, pitchWindowSize * .25)
         pitchDetector.run();
         const {period, clarity} = pitchDetector;
         setPitchResult({period, clarity});
@@ -192,25 +195,27 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         {noDisplay ? "-" : (pitchResult.clarity * 100).toFixed(2)}%
         </span>
       </div>
-      <canvas ref={canvasRef} width={width} height={height}></canvas>
-      <p>Legend:</p>
+      <canvas ref={canvasRef} width={width} height={height} style={{backgroundColor: "#eee"}}/>
+      <p>
+        In a coordinate system with a horizontal time axis
+        (with the current time at the right end)
+        and a vertical frequency axis (using a logarithmic scale)
+        the following things are displayed:</p>
       <ul>
         <li>
-          red: the intensity of the frequency
-          (determined by the built-in FFT of your browser's WebAudio system)
+          red: the intensity of the frequency in the audio input
         </li>
-        <li>blue: the c notes at each octave</li>
         <li>
           green (or yellow when over a red area):
           the pitch as determined by the McLeod method
         </li>
+        <li>blue: the c notes at each octave for orientation</li>
       </ul>
-      <p>The vertical (frequency) axis uses a logarithmic scale.</p>
-
       <h2>Visual Explanation of the McLeod Pitch-Detection Method</h2>
       <p>
         The pitch displayed above is computed according to the paper {}
-        <a href="https://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf">
+        <a target="_blank" rel="noreferrer"
+        href="https://www.cs.otago.ac.nz/tartini/papers/A_Smarter_Way_to_Find_Pitch.pdf">
           <em>A Smarter Way to Find Pitch</em>
         </a> by P. McLeod and G. Wyvill.
         In this section we visualize the computation steps of this method.
@@ -219,10 +224,11 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <WaveCanvas pitchDetector={pitchDetector}/>
       <p>
         <label>
-          You can freeze the audio input so that you need not be singing all the time: {}
+          You can freeze the audio input so that you need not keep singing all the time: {}
           <input type= "checkbox" checked={freeze} onChange={event => setFreeze(event.target.checked)}/>
         </label>
       </p>
+      <h3>Autocorrelation</h3>
       <p>
         We can correlate this wave with a delayed version of itself.
         Use the slider to change the delay:
@@ -282,6 +288,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         {} <F>∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
         is called <F>m'<sub>t</sub> <P>τ</P></F> in the McLeod/Wyvill paper.
       </p>
+      <h3>Normalization</h3>
       <p>
         We divide the autocorrelation function by
         {} <F>½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P></F> {}
@@ -291,7 +298,10 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <p>
         This function is called the "Normalized Square Difference Function"
         (NSDF) <F>n'<sub>t</sub> <P>τ</P></F> in the McLeod/Wyvill paper.
-        It is used to determine the pitch as follows:
+      </p>
+      <h3>Peak Picking</h3>
+      <p>
+        The NSDF is used to determine the pitch as follows:
       </p>
       <ul>
         <li>
@@ -322,14 +332,23 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           at the beginning of the demo.)
         </li>
       </ul>
-      <h2>A Note on Terminology</h2>
+      <h2>Remarks</h2>
+      <h3>A Note on Terminology</h3>
       <p>
-        What McLeod/Wyvill and also the previous section call
-        auto<em>correlation</em> is actually
-        a <a href="https://en.wikipedia.org/wiki/Covariance">covariance</a> {}
+        The auto<em>correlation</em> from the previous section is actually more like
+        a <a target="_blank" rel="noreferrer"
+        href="https://en.wikipedia.org/wiki/Covariance">covariance</a> {}
         between the wave and its delayed version
         (assuming that the mean value of each wave is 0).
-        So it might better be called auto<em>covariance</em>.
+        So I would have called this auto<em>covariance</em>.
+        (But "autocorrelation" seems to be the established term in
+        the signal processing community,
+        which apparently follows the terminology
+        from probability theory and statistics only loosely.
+        See for example
+        {} <a target="_blank" rel="noreferrer" href="https://mathworld.wolfram.com/Autocorrelation.html">here</a>,
+        {} <a target="_blank" rel="noreferrer" href="https://en.wikipedia.org/wiki/Autocovariance#Normalization">here</a>, and
+        {} <a target="_blank" rel="noreferrer" href="https://en.wikipedia.org/wiki/Autocorrelation#Auto-correlation_of_stochastic_processes">here</a>.)
       </p>
       <p>
         This autocovariance can be normalized to an actual autocorrelation
@@ -339,16 +358,16 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <blockquote>
         <F>
           ρ'<sub>t</sub> <P>τ</P> <DEF/> cov'<sub>t</sub> <P>τ</P> / {}
-          <P>σ'<sub>t</sub> <P>τ</P> σ'<sub>t+τ</sub> <P>τ</P></P>
+          <P>σ'<sub>t</sub> <P>τ</P> · σ'<sub>t+τ</sub> <P>τ</P></P>
         </F>
       </blockquote>
       <p>where the covariance and the standard deviations are defined as</p>
       <blockquote>
-        <F>cov'<sub>t</sub> <P>τ</P> <DEF/> ∑ x<sub>i</sub> x<sub>i+τ</sub></F>
+        <F>cov'<sub>t</sub> <P>τ</P> <DEF/> <P> ∑ x<sub>i</sub> x<sub>i+τ</sub> </P> / <P>W − τ</P></F>
         <br/>
-        <F>σ'<sub>t</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i</sub><SQ/> </SQRT></F>
+        <F>σ'<sub>t</sub> <P>τ</P> <DEF/> <SQRT> <P> ∑ x<sub>i</sub><SQ/> </P> / <P>W − τ</P> </SQRT></F>
         <br/>
-        <F>σ'<sub>t+τ</sub> <P>τ</P> <DEF/> <SQRT> ∑ x<sub>i+τ</sub><SQ/> </SQRT></F>
+        <F>σ'<sub>t+τ</sub> <P>τ</P> <DEF/> <SQRT> <P> ∑ x<sub>i+τ</sub><SQ/> </P> / <P>W − τ</P> </SQRT></F>
       </blockquote>
       <p>
         The primes behind the symbols <F>ρ</F>, <F>cov</F>, and <F>σ</F> {}
@@ -357,29 +376,37 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         {} <F>t + W − <N>1</N> − τ</F>.
       </p>
       <p>
-        According to standard terminology
-        all our summations would have to be divided by the number of terms,
-        that is, by the overlap size <F>W − τ</F>.
-        But in the autocorrelation formula these divisors cancel each other out.
+        In our definitions of <F>cov'</F> and <F>σ'</F> we divide the summations
+        by the number of terms, that is, by the overlap size <F>W − τ</F>.
+        This is just to comply with standard terminology.
+        In practice we need not perform the divisions
+        because the divisors cancel each other out in the formula for
+        the autocorrelation <F>ρ'</F>:
       </p>
+      <blockquote>
+        <F>
+          ρ'<sub>t</sub> <P>τ</P> = <P> ∑ x<sub>i</sub> x<sub>i+τ</sub> </P> / {}
+          <SQRT> <P> ∑ x<sub>i</sub><SQ/> </P> · <P> ∑ x<sub>i+τ</sub><SQ/> </P> </SQRT>
+        </F>
+      </blockquote>
       <p>
-        Notice that in our normalization formula the denominator
-        {} <F>σ'<sub>t</sub> <P>τ</P> σ'<sub>t+τ</sub> <P>τ</P></F> {}
-        is actually the <em>geometric</em> mean of the variances
+        Notice that the denominator
+        {} <F><SQRT> <P> ∑ x<sub>i</sub><SQ/> </P> · <P> ∑ x<sub>i+τ</sub><SQ/> </P> </SQRT></F> {}
+        is actually the <em>geometric</em> mean of
         {} <F>∑ x<sub>i</sub><SQ/></F> and
         {} <F>∑ x<sub>i+τ</sub><SQ/></F>.
         In the previous section we have used the <em>arithmetic</em> mean
-        of these two values as the denominator for normalization.
+        of these two sums as the denominator for normalization.
         In practice this does not make much of a difference.
         So McLeod's "Normalized Square Difference Function" is actually
         quite close to what I would call an autocorrelation function.
       </p>
-      <h2>The Squared Difference Function</h2>
+      <h3>The Squared Difference Function</h3>
       <p>
         While the approach described above attempts
         to maximize the correlation between the original and the delayed wave,
         we can also try to minimize the differences between the two waves.
-        Actually we square the differences so that differences in both directions
+        As usual we square the differences so that differences in both directions
         contribute to the "badness" measure.
       </p>
       <p>
@@ -389,7 +416,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         </label>
       </p>
       <p>
-        ...and another possibility to select the delay <F>τ</F>:
+        And you can again move select the delay <F>τ</F>
       </p>
       <div>
         <input type="range"
@@ -399,15 +426,15 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         />
       </div>
       <p>
-        ...to compare the original wave to various delayed waves:
+        to compare the original wave to delayed versions of that wave:
       </p>
       <TwoWaveCanvas2 pitchDetector={pitchDetector} tau={tau}/>
       <p>
-        The green areas show the squared differences between the two waves.
-        If the two waves are well-aligned, these green areas become almost zero.
+        The red areas show the squared differences between the two waves.
+        If the two waves are well-aligned, these red areas become almost zero.
       </p>
       <p>
-        As above, we can see the integral (actually sum) over the squared
+        As above, we can consider the integral (actually sum) over the squared
         differences as a function of <F>τ</F>:
       </p>
       <SDFCanvas pitchDetector={pitchDetector} tau={tau}/>
@@ -455,7 +482,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         </F>
       </blockquote>
       <p>
-        This is what I would call the "normalized squared-difference function":
+        This is what I would have called the "normalized squared-difference function":
       </p>
       <NSDF2Canvas pitchDetector={pitchDetector}/>
       <p>
@@ -469,7 +496,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         is probably the reason why McLeod and Wyvill call the latter the
         "Normalized Squared-Difference Function".
       </p>
-      <h2>A Note on Tapering</h2>
+      <h3>A Note on Tapering</h3>
       <p>
         When the delay <F>τ</F> gets close to the window size <F>W</F> the
         overlap <F>W − τ</F> of the two waves gets short.
@@ -490,7 +517,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         That is, it is anyway assumed that the pitch period is shorter than
         {} <F>½ W</F>.
       </p>
-      <h2>A Note on Superimposition</h2>
+      <h3>A Note on Superimposition</h3>
       <p>
         A funny effect can be observed
         when the input signal is the superimposition of of two tones
@@ -513,15 +540,27 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         You can try this by playing two notes simultaneously
         that are a fifth, a fourth, or even just a major or minor third apart.
       </p>
-      <h2>And Finally: A Note on FFT</h2>
+      <h2>And Finally: FFT</h2>
       <p>
-        I started to implement McLeod's pitch-detection method just as a use
-        case for FFT.  Only then I started to think about the method in more
-        detail.
+        While the frequency display at the top of the demo is based on
+        the built-in FFT of your browser's WebAudio system,
+        a separate FFT implementation is used for computing the
+        autocorrelation function efficiently.
       </p>
       <p>
-        But where does FFT come into play?
-        ...TODO
+        A straight-forward implementation of
+        {} <F>∑ x<sub>i</sub> x<sub>i+τ</sub></F> {}
+        for <F>τ = 0, 1, ..., W − 1</F> (with window size <F>W</F>)
+        where in each summation <F>i</F> ranges from <F>t</F> to
+        {} <F>t + W − <N>1</N> − τ</F> {}
+        uses two nested loops, which has complexity
+        {} <F>O<P>W<sup><N>2</N></sup></P></F>.
+        But notice that the autocorrelation/autocovariance function
+        happens to be a convolution
+        of the wave function (with some zero-padding) with itself.
+        This made it possible to speed things up to complexity
+        {} <F>O<P>W <N>log</N><P>W</P></P></F> by using
+        an <a target="_blank" href="">FFT-based computation</a>.
       </p>
     </div>
   );
@@ -663,10 +702,10 @@ const WaveCanvas: FC<{pitchDetector: McLeodPitchDetector}> = ({
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {values, dataSize, n} = pitchDetector;
-  const maxIdx = getMaxIndex(values, n * 0.25);
-  const limit = 0.98 * values[maxIdx];
-  let offset = 0;
-  while (offset <= maxIdx && values[offset] < limit) offset++;
+  // Select the display window in such a way that it begins at some peak.
+  // This is just a heuristic approach to make the wave display more stable
+  // with live data.
+  const offset = getMaxIndex(values, n * 0.25);
   const options = {
     to: dataSize,
     scaleX: width / n,
@@ -684,10 +723,10 @@ const TwoWaveCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {values, dataSize, n} = pitchDetector;
-  const maxIdx = getMaxIndex(values, n * 0.25);
-  const limit = 0.98 * values[maxIdx];
-  let offset = 0;
-  while (offset <= maxIdx && values[offset] < limit) offset++;
+  // Here we have to select the same time window for the unshifted wave
+  // as in the WaveCanvas.
+  // TODO refactor to helper function
+  const offset = getMaxIndex(values, n * 0.25);
   const rescale = Math.max(0.01, stdDev(values));
   const options = {
     to: dataSize,
@@ -780,10 +819,7 @@ const TwoWaveCanvas2: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   const {width, height} = cc.canvas;
   cc.clearRect(0, 0, width, height);
   const {values, dataSize, n} = pitchDetector;
-  const maxIdx = getMaxIndex(values, n * 0.25);
-  const limit = 0.98 * values[maxIdx];
-  let offset = 0;
-  while (offset <= maxIdx && values[offset] < limit) offset++;
+  const offset = getMaxIndex(values, n * 0.25);
   const rescale = Math.max(0.01, stdDev(values));
   const options = {
     to: dataSize,
@@ -799,7 +835,7 @@ const TwoWaveCanvas2: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
     const xPrime = x - tau;
     return xPrime <= 0 ? values[x + offset] : values[xPrime + offset];
   };
-  cc.fillStyle = "#0f04";
+  cc.fillStyle = "#f004";
   cc.fill(drawFunc(x => (wave1(x) - wave2(x))**2 / (rescale * 10), optionsClose));
   cc.stroke(drawFunc(wave1, options));
   cc.strokeStyle = "#00f8";
@@ -825,10 +861,10 @@ const SDFCanvas: FC<{pitchDetector: McLeodPitchDetector, tau: number}> = ({
   cc.stroke(zeroLine(options));
   cc.strokeStyle = "blue";
   cc.stroke(drawFunc(sdf, options));
-  cc.fillStyle = "green";
+  cc.fillStyle = "red";
   const value = sdf(tau);
   cc.fill(dot(tau, value, 4, options));
-  cc.strokeStyle = "green";
+  cc.strokeStyle = "red";
   cc.stroke(line({x1: tau, x2: tau, y1: 0, y2: value, ...options}));
 }, [pitchDetector, tau])}/>
 
