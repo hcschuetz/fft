@@ -203,7 +203,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         the following things are displayed:</p>
       <ul>
         <li>
-          red: the intensity of the frequency in the audio input
+          red: the intensities of frequencies in the audio input
         </li>
         <li>
           green (or yellow when over a red area):
@@ -224,7 +224,8 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <WaveCanvas pitchDetector={pitchDetector}/>
       <p>
         <label>
-          You can freeze the audio input so that you need not keep singing all the time: {}
+          You can freeze the audio input by activating this checkbox
+          so that you need not keep singing all the time: {}
           <input type= "checkbox" checked={freeze} onChange={event => setFreeze(event.target.checked)}/>
         </label>
       </p>
@@ -298,6 +299,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <p>
         This function is called the "Normalized Square Difference Function"
         (NSDF) <F>n'<sub>t</sub> <P>τ</P></F> in the McLeod/Wyvill paper.
+        (See below for a remark on this name.)
       </p>
       <h3>Peak Picking</h3>
       <p>
@@ -328,8 +330,8 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           measured in sampling steps.  This period can be converted
           into a frequency and a musical note in the usual way.
           The height of the chosen peak is returned as the "clarity" of the wave.
-          (You can see the current pitch frequency, note, and clarity
-          at the beginning of the demo.)
+          (This is how the pitch frequency, note, and clarity
+          at the beginning of the demo have been calculated.)
         </li>
       </ul>
       <h2>Remarks</h2>
@@ -358,7 +360,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <blockquote>
         <F>
           ρ'<sub>t</sub> <P>τ</P> <DEF/> cov'<sub>t</sub> <P>τ</P> / {}
-          <P>σ'<sub>t</sub> <P>τ</P> · σ'<sub>t+τ</sub> <P>τ</P></P>
+          <P>σ'<sub>t</sub> <P>τ</P> σ'<sub>t+τ</sub> <P>τ</P></P>
         </F>
       </blockquote>
       <p>where the covariance and the standard deviations are defined as</p>
@@ -386,12 +388,12 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <blockquote>
         <F>
           ρ'<sub>t</sub> <P>τ</P> = <P> ∑ x<sub>i</sub> x<sub>i+τ</sub> </P> / {}
-          <SQRT> <P> ∑ x<sub>i</sub><SQ/> </P> · <P> ∑ x<sub>i+τ</sub><SQ/> </P> </SQRT>
+          <SQRT> <P> ∑ x<sub>i</sub><SQ/> </P> <P> ∑ x<sub>i+τ</sub><SQ/> </P> </SQRT>
         </F>
       </blockquote>
       <p>
         Notice that the denominator
-        {} <F><SQRT> <P> ∑ x<sub>i</sub><SQ/> </P> · <P> ∑ x<sub>i+τ</sub><SQ/> </P> </SQRT></F> {}
+        {} <F><SQRT> <P> ∑ x<sub>i</sub><SQ/> </P> <P> ∑ x<sub>i+τ</sub><SQ/> </P> </SQRT></F> {}
         is actually the <em>geometric</em> mean of
         {} <F>∑ x<sub>i</sub><SQ/></F> and
         {} <F>∑ x<sub>i+τ</sub><SQ/></F>.
@@ -399,7 +401,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         of these two sums as the denominator for normalization.
         In practice this does not make much of a difference.
         So McLeod's "Normalized Square Difference Function" is actually
-        quite close to what I would call an autocorrelation function.
+        quite close to what I would call the autocorrelation function.
       </p>
       <h3>The Squared Difference Function</h3>
       <p>
@@ -465,7 +467,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           {} &lt; {}
           ∑ x<sub>i</sub><SQ/> + 2 · ½ ∑ <P>x<sub>i</sub><SQ/> + x<sub>i+τ</sub><SQ/></P> + ∑ x<sub>i+τ</sub><SQ/>
           {} = {}
-          2 · <P> ∑ x<sub>i</sub><SQ/> + ∑ x<sub>i+τ</sub><SQ/> </P>
+          2 <P> ∑ x<sub>i</sub><SQ/> + ∑ x<sub>i+τ</sub><SQ/> </P>
           {} = {}
           2 m'<sub>t</sub> <P>τ</P>
         </F>
@@ -493,7 +495,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
       <p>
         The close relationship between this function and the autocorrelation function
         {} <F>n'<sub>t</sub> <P>τ</P></F> {}
-        is probably the reason why McLeod and Wyvill call the latter the
+        seems to be the reason why McLeod and Wyvill call the latter the
         "Normalized Squared-Difference Function".
       </p>
       <h3>A Note on Tapering</h3>
@@ -516,6 +518,8 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         the algorithm can "extract pitch with as little as two periods".
         That is, it is anyway assumed that the pitch period is shorter than
         {} <F>½ W</F>.
+        Also the section on efficient calculation says
+        that they are using <F>W / <N>2</N></F> NSDF values.
       </p>
       <h3>A Note on Superimposition</h3>
       <p>
@@ -524,7 +528,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         whose base frequencies have ratios close to 2/3, 3/4, 2/5, 3/5, 4/5,
         or the like
         ( in general, fractions whose numerator and denominator in reduced form
-        are small numbers but greater than 1).
+        are small natural numbers but greater than 1).
         With appropriate amplitudes the determined pitch period will be the
         least common multiple of the individual pitch periods.
         Or, equivalently, the determined pitch frequency will be the
@@ -548,19 +552,23 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         autocorrelation function efficiently.
       </p>
       <p>
-        A straight-forward implementation of
+        For each <F>τ = 0, 1, ..., W − 1</F> (with initial window size <F>W</F>)
+        we need the sum
         {} <F>∑ x<sub>i</sub> x<sub>i+τ</sub></F> {}
-        for <F>τ = 0, 1, ..., W − 1</F> (with window size <F>W</F>)
-        where in each summation <F>i</F> ranges from <F>t</F> to
-        {} <F>t + W − <N>1</N> − τ</F> {}
-        uses two nested loops, which has complexity
-        {} <F>O<P>W<sup><N>2</N></sup></P></F>.
-        But notice that the autocorrelation/autocovariance function
+        where <F>i</F> ranges from <F>t</F> to
+        {} <F>t + W − <N>1</N> − τ</F>.
+        A straight-forward implementation uses two nested loops
+        and thus has complexity <F>O<P>W<sup><N>2</N></sup></P></F>.
+        But notice that the sum seen as a function of <F>τ</F> {}
         happens to be a convolution
-        of the wave function (with some zero-padding) with itself.
+        of the wave function (with some zero-padding) with a time-reversed
+        version of itself.
         This made it possible to speed things up to complexity
-        {} <F>O<P>W <N>log</N><P>W</P></P></F> by using
-        an <a target="_blank" href="">FFT-based computation</a>.
+        {} <F>O<P>W <N>log</N><P>W</P></P></F> by
+        an FFT-based computation according to the
+        {} <a target="_blank" href="https://mathworld.wolfram.com/Wiener-KhinchinTheorem.html">
+          Wiener-Khinchin theorem
+        </a>.
       </p>
     </div>
   );
