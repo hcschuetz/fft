@@ -416,7 +416,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         </label>
       </p>
       <p>
-        And you can again move select the delay <F>τ</F>
+        And you can again select the delay <F>τ</F>
       </p>
       <div>
         <input type="range"
@@ -426,7 +426,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         />
       </div>
       <p>
-        to compare the original wave to delayed versions of that wave:
+        to compare the original wave to delayed versions:
       </p>
       <TwoWaveCanvas2 pitchDetector={pitchDetector} tau={tau}/>
       <p>
