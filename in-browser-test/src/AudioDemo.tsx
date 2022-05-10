@@ -170,7 +170,9 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     centsOffset < 0 ? `-${(-centsOffset).toFixed(0).padStart(2, "\u2007")}` :
     `+${(+centsOffset).toFixed(0).padStart(2, "\u2007")}`;
 
-  const [tau, setTau] = useState(0);
+  // Start with some non-zero delay so that readers already see the delayed wave
+  // even before moving the tau slider.
+  const [tau, setTau] = useState(() => Math.round(pitchWindowSize / 10));
   return (
     <div style={{height: "100%", width: "850px", overflow: "auto"}}>
       <h1>Audio Demo</h1>
