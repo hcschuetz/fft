@@ -114,7 +114,7 @@ class McLeodPitchDetector {
     while (tau < n && nsdf[tau] > 0) tau++;
     while (tau < n) {
       // a non-positive range begins; skip it:
-      // (notice the use of `!(... > 0)` instead of `(... = 0)`,
+      // (notice the use of `!(... > 0)` instead of `(... <= 0)`,
       // avoiding infinite loops upon NaN;)
       while (tau < n && !(nsdf[tau] > 0)) tau++;
       // a positive range begins; determine the maximum value and position
