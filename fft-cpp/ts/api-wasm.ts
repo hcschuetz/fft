@@ -74,7 +74,6 @@ class FFTFromWASM implements FFT {
 export const versions: Record<string, () => Promise<FFTFactory>> =
   Object.fromEntries(
     versionNames
-    .filter(name => name !== "fftKiss2") // TODO make fftKiss2 work again
     .map(name => {
       async function makeFactoryPromise(): Promise<FFTFactory> {
         try {
@@ -101,6 +100,21 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
               cos: Math.cos,
               sin: Math.sin,
               __stack_pointer: new WebAssembly.Global({value: 'i32', mutable: true}, stackSize),
+
+              // For fftKiss2, which was implemented in C++ irrespective of WASM:
+              // All these referenced functions seem to be supposed to perform
+              // some error handling.  We hope they are never called.
+              // But if they are, we simply throw an exception.
+              ...Object.fromEntries(`
+              __cxa_allocate_exception
+              __cxa_throw
+              _ZNKSt3__220__vector_base_commonILb1EE20__throw_length_errorEv
+              _ZNSt11logic_errorC2EPKc
+              _ZNSt12length_errorD1Ev
+              `.trim().split(/\r\n|\r|\n/).map(line => line.trim())
+              .map(name => [name, () => {
+                throw new Error(`Attempt to call library function ${name}`);
+              }]))
             },
           };
 
