@@ -9,8 +9,7 @@
 /coverage
 
 # production
-# no, we want the build to be served as github page
-# /build
+/build
 
 # misc
 .DS_Store
