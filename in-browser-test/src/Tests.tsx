@@ -144,7 +144,7 @@ const ResultTable: FC<{results: Results}> = ({results}) => {
           ))}
         </tr>
         <tr>
-          <SeparatorRowField colSpan={3 + resultEntries.length}/>
+          <SeparatorRowField colSpan={4 + resultEntries.length}/>
         </tr>
       </thead>
       <tbody>
@@ -153,7 +153,7 @@ const ResultTable: FC<{results: Results}> = ({results}) => {
             <tr>
               <TH left>{name}</TH>
               {result instanceof Error ? (
-                <TestField colSpan={2 + resultEntries.length} error>
+                <TestField colSpan={3 + resultEntries.length} error>
                   {result.message}
                 </TestField>
               ) : (
