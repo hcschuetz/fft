@@ -76,6 +76,13 @@ async function compileWASM({version, outDir}) {
   `.trim().split(/\r\n|\r|\n/).map(line => line.trim())
   .concat(process.env.CLANG_V ? ["-v"] : []),
   );
+
+  // For informational/debugging purposes:
+  spawnCommand(process.env.EMSDK + "/upstream/bin/wasm-dis", [
+    `${outFileBase}.wasm`,
+    "-o", `${outFileBase}.wast`,
+  ]);
+
   // This is an ad-hoc solution for packaging WASM.
   // TODO Check if it is possible to use a webpack wasm-loader without
   // ejecting a create-react-app application.
