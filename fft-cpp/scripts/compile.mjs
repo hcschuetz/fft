@@ -52,43 +52,35 @@ async function compileNative({version, outDir}) {
   ]);
 }
 
-async function compile({version, wasm, outDir}) {
+async function compileWASM({version, outDir}) {
   const outFileBase = `${outDir}/${version}`;
-
-  await spawnCommand(emcc, [
-    ...process.env.EMCC_V ? ["-v"] : [],
-    ...process.env.EMCC_G ? ["-g"] : [],
-    "-o", `${outFileBase}.${wasm ? "wasm" : "js"}`,
-    "--memory-init-file", "0",
-    "-s", "MODULARIZE=1",
-    // In the JS case compiler output for the web environment actually does
-    // work with node, but compiler output for node does not work in the
-    // browser.  So we only create a single JS build, which is for the web
-    // environment.  In the WASM case the ENVIRONMENT does not make a
-    // difference anyway.
-    "-s", "ENVIRONMENT=web",
-    "-s", `WASM=${Number(wasm)}`,
-    ... wasm ? ["-s", "SIDE_MODULE=2", "--no-entry"] : [],
-    "-s", "FILESYSTEM=0",
-    "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
-    "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
-    "-O3",
-    `src/${version}.c++`,
-    "src/lib.c",
-  ]);
-
-  if (!wasm) {
-    await writeFile(`${outFileBase}.d.ts`, `
-import { Instance } from "../dst/fft-instance-utils";
-declare function Module(): Promise<Instance>;
-export default Module;  
-`);
-  } else {
-    // This is an ad-hoc solution for packaging WASM.
-    // TODO Check if it is possible to use a webpack wasm-loader without
-    // ejecting a create-react-app application.
-    const wasmCode = await readFile(`${outFileBase}.wasm`);
-    await writeFile(`${outFileBase}-wasm.js`, `
+  await spawnCommand(process.env.EMSDK + "/upstream/bin/clang", `
+    --sysroot=${process.env.EMSDK}/upstream/emscripten/cache/sysroot
+    -D__wasi__=1
+    --target=wasm32
+    -O3
+    -flto
+    -nostdlib
+    -Wl,--no-entry
+    -Wl,--export=prepare_fft
+    -Wl,--export=run_fft
+    -Wl,--export=delete_fft
+    -Wl,--unresolved-symbols=ignore-all
+    -Wl,--import-undefined
+    -Wl,--import-memory
+    -Wl,--lto-O3
+    -o
+    ${outFileBase}.wasm
+    src/${version}.c++
+    src/lib.c
+  `.trim().split(/\r\n|\r|\n/).map(line => line.trim())
+  .concat(process.env.CLANG_V ? ["-v"] : []),
+  );
+  // This is an ad-hoc solution for packaging WASM.
+  // TODO Check if it is possible to use a webpack wasm-loader without
+  // ejecting a create-react-app application.
+  const wasmCode = await readFile(`${outFileBase}.wasm`);
+  await writeFile(`${outFileBase}-wasm.js`, `
 const ${version}_wasm_base64 = ${"`"}
 ${wasmCode.toString("base64").match(/.{1,72}/g).join("\n")}
 ${"`"};
@@ -100,15 +92,42 @@ module.exports = ${version}_wasm_base64;
 declare const ${version}_wasm_base64: string;
 export default ${version}_wasm_base64;
 `);
-  }
+}
+
+async function compileJS({version, outDir}) {
+  const outFileBase = `${outDir}/${version}`;
+  await spawnCommand(emcc, [
+    ...process.env.EMCC_V ? ["-v"] : [],
+    ...process.env.EMCC_G ? ["-g"] : [],
+    "-o", `${outFileBase}.js`,
+    "--memory-init-file", "0",
+    "-s", "MODULARIZE=1",
+    // Compiler output for the web environment actually does
+    // work with node, but compiler output for node does not work in the
+    // browser.  So we only create a single JS build, which is for the web
+    // environment.
+    "-s", "ENVIRONMENT=web",
+    "-s", `WASM=0`,
+    "-s", "FILESYSTEM=0",
+    "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
+    "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
+    "-O3",
+    `src/${version}.c++`,
+    "src/lib.c",
+  ]);
+  await writeFile(`${outFileBase}.d.ts`, `
+import { Instance } from "../dst/fft-instance-utils";
+declare function Module(): Promise<Instance>;
+export default Module;  
+`);
 }
 
 async function compileTechForVersion({tech, version, outDir}) {
   console.log(`==== ${tech} ${version} ====`);
   switch (tech) {
     case "NATIVE": await compileNative({version, outDir}); break;
-    case "JS"    : await compile({version, wasm: false, outDir}); break;
-    case "WASM"  : await compile({version, wasm: true , outDir}); break;
+    case "JS"    : await compileJS    ({version, outDir}); break;
+    case "WASM"  : await compileWASM  ({version, outDir}); break;
     default:
       console.error(`
 Environment variable TECH has value "${process.env.TECH}".
