@@ -1,20 +1,25 @@
-#include "fftKiss2.h++"
-#include "complex.h++"
-#include <math.h>
+#include "../thirdparty/kiss_fft130/kissfft.hh"
+#include "c_bindings.h++"
 
-FFT::FFT(unsigned int n) {
-  forward  = new kissfft<double>(n, false);
-  backward = new kissfft<double>(n, true );
+struct FFT {
+  kissfft<double>* forward;
+  kissfft<double>* backward;
+};
+
+FFT* prepare_fft(unsigned int n) {
+  FFT* fft = (FFT*) malloc(sizeof(FFT));
+  fft->forward  = new kissfft<double>(n, false);
+  fft->backward = new kissfft<double>(n, true );
+  return fft;
 }
 
-FFT::~FFT() {
-  delete forward;
-  delete backward;
+void run_fft(FFT* fft, const Complex* input, Complex* output, int direction) {
+  kissfft<double>* p = direction < 0 ? fft->backward : fft->forward;
+  p->transform(input, output);
 }
 
-void FFT::run(const Complex* f, Complex* out, int direction) const {
-  kissfft<double>* p = direction < 0 ? backward : forward;
-  p->transform((std::complex<double>*) f, (std::complex<double>*) out);
+void delete_fft(FFT* fft) {
+  delete fft->forward;
+  delete fft->backward;
+  free(fft);
 }
-
-#include "c_bindings.c++"

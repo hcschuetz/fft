@@ -7,7 +7,7 @@ class FFT;
 
 extern "C" {
   FFT* prepare_fft(unsigned int n);
-  void run_fft(FFT* fft, Complex* input, Complex* output, int direction = 1);
+  void run_fft(FFT* fft, const Complex* input, Complex* output, int direction = 1);
   void delete_fft(FFT* fft);
 }
 

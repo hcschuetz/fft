@@ -5,7 +5,7 @@ extern "C" {
     return new FFT(n);
   }
 
-  void run_fft(FFT* fft, Complex* input, Complex* output, int direction) {
+  void run_fft(FFT* fft, const Complex* input, Complex* output, int direction) {
     fft->run(input, output, direction);
   }
 

@@ -18,7 +18,7 @@ FFT* prepare_fft(unsigned int n) {
   return fft;
 }
 
-void run_fft(FFT* fft, Complex* input, Complex* output, int direction) {
+void run_fft(FFT* fft, const Complex* input, Complex* output, int direction) {
   kiss_fft(
     direction < 0 ? fft->backward : fft->forward,
     (kiss_fft_cpx*) input,
