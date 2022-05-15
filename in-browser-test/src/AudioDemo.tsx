@@ -568,7 +568,7 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
         This made it possible to speed things up to complexity
         {} <F>O<P>W <N>log</N><P>W</P></P></F> by
         an FFT-based computation according to the
-        {} <a target="_blank" href="https://mathworld.wolfram.com/Wiener-KhinchinTheorem.html">
+        {} <a target="_blank" rel="noreferrer" href="https://mathworld.wolfram.com/Wiener-KhinchinTheorem.html">
           Wiener-Khinchin theorem
         </a>.
       </p>
