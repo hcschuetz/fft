@@ -2,18 +2,17 @@
 #define FFT47POINTERS_HPP 1
 
 #include "complex.h++"
-#include "fft.h++"
 
-class FFT47pointers : public FFT {
+class FFT {
   unsigned int n;
   double* cosines;
   unsigned int* permute;
 
 public:
-  FFT47pointers(unsigned int n);
-  virtual ~FFT47pointers();
+  FFT(unsigned int n);
+  ~FFT();
 
-  virtual void run(const Complex* f, Complex* out, int direction = 1) const;
+  void run(const Complex* f, Complex* out, int direction = 1) const;
 };
 
 #endif

@@ -21,7 +21,12 @@ async function main() {
     tech === "JS"   ? versionsJS   :
     tech === "WASM" ? versionsWASM :
     {};
-  const factory = await versions[versionName]();
+  const version = versions[versionName];
+  if (!version) {
+    console.error("Version not supported: ", tech, versionName);
+    return;
+  }
+  const factory = await version();
   for (const n of sizes) {
     console.log(`---- n = ${n} ----`);
 
@@ -45,6 +50,7 @@ async function main() {
         (1 / time_per_run_in_s).toFixed().padStart(10)
       } calls/s;`);
     }
+    fft.dispose();
   }
 }
 

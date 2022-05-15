@@ -5,8 +5,7 @@
 #include <stdlib.h>
 
 #include "complex.h++"
-#include "fft.h++"
-#include "fft.h"
+#include "c_bindings.h++"
 
 int main() {
   int direction;
@@ -20,15 +19,17 @@ int main() {
     f[i] = Complex(re, im);
   }
 
-  std::unique_ptr<FFT> fft(prepare_fft(n));
+  FFT* fft = prepare_fft(n);
 
   Complex out[n];
-  fft->run(f, out, direction);
+  run_fft(fft, f, out, direction);
 
   std::cout << std::setprecision(20);
   for (unsigned int i = 0; i < n; i++) {
     std::cout << out[i].real() << " " << out[i].imag() << std::endl;
   }
+
+  delete_fft(fft);
 
   return 0;
 }

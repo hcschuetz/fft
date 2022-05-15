@@ -5,7 +5,7 @@
 
 const double TAU = 6.2831853071795864769;
 
-FFT48::FFT48(unsigned int n) {
+FFT::FFT(unsigned int n) {
   double* cosines = new double[n];
   for (unsigned int i = 0; i < n; i++) {
     cosines[i] = cos(TAU * i / n);
@@ -34,12 +34,12 @@ FFT48::FFT48(unsigned int n) {
   this->permute = permute;
 }
 
-FFT48::~FFT48() {
+FFT::~FFT() {
   delete cosines;
   delete permute;
 }
 
-void FFT48::run(const Complex* f, Complex* out, int direction) const {
+void FFT::run(const Complex* f, Complex* out, int direction) const {
   const unsigned int n = this->n;
   fallbackFFT(n, f, out);
   double* const cosines = this->cosines;
@@ -167,3 +167,5 @@ void FFT48::run(const Complex* f, Complex* out, int direction) const {
 #undef rotation
 
 }
+
+#include "c_bindings.c++"

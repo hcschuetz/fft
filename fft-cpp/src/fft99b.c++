@@ -7,7 +7,7 @@ const double TAU = 6.2831853071795864769;
 
 const unsigned int c31 = 8 * sizeof(int) - 1;
 
-FFT99b::FFT99b(unsigned int n) {
+FFT::FFT(unsigned int n) {
   unsigned int halfN = n >> 1;
   unsigned int quarterN = n >> 2;
 
@@ -35,12 +35,12 @@ FFT99b::FFT99b(unsigned int n) {
   this->permute = permute;
 }
 
-FFT99b::~FFT99b() {
+FFT::~FFT() {
   delete cosines;
   delete permute;
 }
 
-void FFT99b::run(const Complex* f, Complex* out, int direction) const {
+void FFT::run(const Complex* f, Complex* out, int direction) const {
   unsigned int n = this->n;
   fallbackFFT(n, f, out);
   double* cosines = this->cosines;
@@ -94,3 +94,5 @@ void FFT99b::run(const Complex* f, Complex* out, int direction) const {
     }
   }
 }
+
+#include "c_bindings.c++"

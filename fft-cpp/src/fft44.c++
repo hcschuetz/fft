@@ -4,7 +4,7 @@
 
 const double TAU = 6.2831853071795864769;
 
-FFT44::FFT44(unsigned int n) {
+FFT::FFT(unsigned int n) {
   Complex* rotations = new Complex[n];
   for (unsigned int i = 0; i < n; i++) {
     rotations[i] = expi(TAU * i / n);
@@ -29,12 +29,12 @@ FFT44::FFT44(unsigned int n) {
   this->permute = permute;
 }
 
-FFT44::~FFT44() {
+FFT::~FFT() {
   delete rotations;
   delete permute;
 }
 
-void FFT44::run(const Complex* f, Complex* out, int direction) const {
+void FFT::run(const Complex* f, Complex* out, int direction) const {
   const unsigned int n = this->n;
   Complex* const rotations = this->rotations;
   unsigned int* const permute = this->permute;
@@ -115,3 +115,5 @@ void FFT44::run(const Complex* f, Complex* out, int direction) const {
     }
   }
 }
+
+#include "c_bindings.c++"

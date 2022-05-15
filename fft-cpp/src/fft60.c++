@@ -7,7 +7,7 @@
 
 const double TAU = 6.2831853071795864769;
 
-FFT60::FFT60(unsigned int n) {
+FFT::FFT(unsigned int n) {
   double* cosines = new double[n];
   for (unsigned int i = 0; i < n; i++) {
     cosines[i] = cos(TAU * i / n);
@@ -35,13 +35,13 @@ FFT60::FFT60(unsigned int n) {
   this->shuffledArray = new complex_p[n >> 2];
 }
 
-FFT60::~FFT60() {
+FFT::~FFT() {
   delete cosines;
   delete permute;
   delete shuffledArray;
 }
 
-void FFT60::run(const Complex* f, Complex* out, int direction) const {
+void FFT::run(const Complex* f, Complex* out, int direction) const {
   const unsigned int n = this->n;
   fallbackFFT(n, f, out);
 
@@ -57,7 +57,7 @@ void FFT60::run(const Complex* f, Complex* out, int direction) const {
   // data will normally not change between calls.
   if (f != this->old_f) {
     // For caching purposes we break the constness of this FFT instance:
-    const_cast<FFT60*>(this)->old_f = f;
+    const_cast<FFT*>(this)->old_f = f;
     int quarterN = n >> 2;
     for (int i = 0; i < quarterN; i++) {
       // Here we do not really break constness, but my stripped-down language
@@ -87,3 +87,5 @@ void FFT60::run(const Complex* f, Complex* out, int direction) const {
 #undef rot90
   }
 }
+
+#include "c_bindings.c++"

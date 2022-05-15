@@ -1,7 +1,6 @@
 import { rm } from "fs/promises";
 
 const paths = `
-src/selectImpl.h++
 dst
 dst-native
 dst-js

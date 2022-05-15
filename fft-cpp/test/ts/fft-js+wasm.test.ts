@@ -46,6 +46,11 @@ function testTech(tech: string, versions: Record<string, () => Promise<FFTFactor
                 setComplex(inputBak, i, z);
               }
             });
+            afterAll(() => {
+              ifft.dispose();
+              fft.dispose();
+              fft01.dispose();
+            })
 
             test(`${versionName} should not change its input array (n = ${n})`, async () => {
               fft.run();

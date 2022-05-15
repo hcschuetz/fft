@@ -4,7 +4,7 @@
 
 const double TAU = 6.2831853071795864769;
 
-void FFT01::recur(int len, const Complex* f, Complex* out, int direction) const {
+void FFT::recur(int len, const Complex* f, Complex* out, int direction) const {
   if (len == 1) {
     out[0] = f[0];
   } else {
@@ -29,10 +29,12 @@ void FFT01::recur(int len, const Complex* f, Complex* out, int direction) const 
   }
 }
 
-FFT01::FFT01(unsigned int n) {
+FFT::FFT(unsigned int n) {
   this->n = n;
 }
 
-void FFT01::run(const Complex* f, Complex* out, int direction) const {
+void FFT::run(const Complex* f, Complex* out, int direction) const {
   recur(n, f, out, direction);
 }
+
+#include "c_bindings.c++"

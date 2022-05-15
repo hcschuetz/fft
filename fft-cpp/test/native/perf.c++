@@ -10,9 +10,7 @@
 #include <unistd.h>
 
 #include "complex.h++"
-#include "fft01.h++"
-#include "fft.h++"
-#include "fft.h"
+#include "c_bindings.h++"
 
 std::mt19937 generator(1234);
 std::uniform_real_distribution distribution(0.0, 1.0);
@@ -104,7 +102,7 @@ int main() {
       unsigned int n = *size_it;
       std::cout << "---- n = " << n << " ----" << std::endl;
 
-      std::unique_ptr<FFT> fft(prepare_fft(n));
+      FFT* fft = prepare_fft(n);
 
       Complex f[n];
       for (unsigned int i = 0; i < n; i++) {
@@ -117,7 +115,7 @@ int main() {
         sleep(pause);
         clock_t start = clock();
         for (unsigned int i = 0; i < blockSize; i++) {
-          fft->run(f, out);
+          run_fft(fft, f, out);
         }
         clock_t end = clock();
         double time_per_run_in_s = (end-start) * 1.0 / (CLOCKS_PER_SEC * blockSize);
@@ -126,6 +124,8 @@ int main() {
           1.0 / time_per_run_in_s
         );
       }
+
+      delete_fft(fft);
     }
   } catch (const char* e) {
     std::cerr << "Exception caught: " << e << std::endl;

@@ -30,6 +30,10 @@ class FFTFromInstance implements FFT {
   getOutput(i: number): Complex {
     return getComplex(this.output, i);
   }
+
+  dispose() {
+    // do nothing; just leave objects to garbage collection
+  }
 }
 
 export const versions: Record<string, () => Promise<FFTFactory>> =

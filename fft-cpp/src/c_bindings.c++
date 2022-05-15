@@ -1,9 +1,8 @@
-#include "fft.h"
-#include "selectImpl.h++"
+#include "c_bindings.h++"
 
 extern "C" {
   FFT* prepare_fft(unsigned int n) {
-    return new FFTImpl(n);
+    return new FFT(n);
   }
 
   void run_fft(FFT* fft, Complex* input, Complex* output, int direction) {

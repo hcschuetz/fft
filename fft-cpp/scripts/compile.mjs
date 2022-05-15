@@ -4,46 +4,18 @@ import { spawnCommand } from "./spawnCommand.mjs";
 
 const emcc = process.platform.startsWith("win") ? "emcc.bat" : "emcc";
 
-async function emitSelectImpl({version}) {
-  await writeFile("src/selectImpl.h++", `
-#ifndef SELECT_IMPL
-#define SELECT_IMPL 1
-
-#include "${version}.h++"
-
-#define FFTImpl FFT${version.substring(3)}
-
-#endif
-`);
-}
-
 const binDir = `test/bin/`;
 const test_o = binDir + "test.o";
 const perf_o = binDir + "perf.o";
 
 async function compileNativeTest() {
   await mkdir(binDir, {recursive: true});
-  switch ((process.env.NATIVE_TESTER ?? "C").toUpperCase()) {
-  case "C":
-    await spawnCommand("gcc", [
-      "-c",
-      "-o", test_o,
-      "-I", "src",
-      "test/native/test.c",
-    ]);
-    break;
-  case "C++":
-  case "CPP":
-    await spawnCommand("g++", [
-      "-c", "-O4",
-      "-o", test_o,
-      "-I", "src",
-      "test/native/test.c++",
-    ]);
-    break;
-  default:
-    throw new Error("NATIVE_TESTER should be 'C' or 'C++' or missing");
-  }
+  await spawnCommand("g++", [
+    "-c", "-O4",
+    "-o", test_o,
+    "-I", "src",
+    "test/native/test.c++",
+  ]);
 
   // We are able to test the API from C and C++, but it suffices to run
   // performance measurements from a single language.
@@ -56,21 +28,13 @@ async function compileNativeTest() {
 }
 
 async function compileNative({version, outDir}) {
-  await emitSelectImpl({version});
   const baseName = `${outDir}/${version}`;
   const fft_code_o = `${baseName}.o`;
-  const c_bindings_o = `${baseName}_c_bindings.o`;
   await spawnCommand("g++", [
     "-c",
     "-O4",
     "-o", fft_code_o,
     `src/${version}.c++`,
-  ]);
-  await spawnCommand("g++", [
-    "-c",
-    "-O4",
-    "-o", c_bindings_o,
-    "src/c_bindings.c++",
   ]);
 
   // The following linking steps are for test code, not productive code.
@@ -78,23 +42,22 @@ async function compileNative({version, outDir}) {
     "-O4",
     "-o", binDir + "test_" + version,
     test_o,
-    c_bindings_o,
     fft_code_o,
   ]);
   await spawnCommand("g++", [
     "-O4",
     "-o", binDir + "perf_" + version,
     perf_o,
-    c_bindings_o,
     fft_code_o,
   ]);
 }
 
 async function compile({version, wasm, outDir}) {
-  await emitSelectImpl({version});
   const outFileBase = `${outDir}/${version}`;
 
   await spawnCommand(emcc, [
+    ...process.env.EMCC_V ? ["-v"] : [],
+    ...process.env.EMCC_G ? ["-g"] : [],
     "-o", `${outFileBase}.${wasm ? "wasm" : "js"}`,
     "--memory-init-file", "0",
     "-s", "MODULARIZE=1",
@@ -105,12 +68,13 @@ async function compile({version, wasm, outDir}) {
     // difference anyway.
     "-s", "ENVIRONMENT=web",
     "-s", `WASM=${Number(wasm)}`,
-    ... wasm ? ["-s", "MAIN_MODULE=2", "--no-entry"] : [],
+    ... wasm ? ["-s", "SIDE_MODULE=2", "--no-entry"] : [],
     "-s", "FILESYSTEM=0",
     "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
     "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
     "-O3",
-    `src/${version}.c++`, "src/c_bindings.c++",
+    `src/${version}.c++`,
+    "src/lib.c",
   ]);
 
   if (!wasm) {

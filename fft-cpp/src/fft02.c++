@@ -4,7 +4,7 @@
 
 const double TAU = 6.2831853071795864769;
 
-void FFT02::recur(int len, const Complex* f, Complex* out, int direction) const {
+void FFT::recur(int len, const Complex* f, Complex* out, int direction) const {
   if (len == 1) {
     out[0] = f[0];
   } else {
@@ -30,7 +30,7 @@ void FFT02::recur(int len, const Complex* f, Complex* out, int direction) const 
   }
 }
 
-FFT02::FFT02(unsigned int n) {
+FFT::FFT(unsigned int n) {
   Complex* rotations = new Complex[n];
   for (unsigned int i = 0; i < n; i++) {
     rotations[i] = expi(TAU * i / n);
@@ -40,10 +40,12 @@ FFT02::FFT02(unsigned int n) {
   this->rotations = rotations;
 }
 
-FFT02::~FFT02() {
+FFT::~FFT() {
   delete rotations;
 }
 
-void FFT02::run(const Complex* f, Complex* out, int direction) const {
+void FFT::run(const Complex* f, Complex* out, int direction) const {
   recur(n, f, out, direction);
 }
+
+#include "c_bindings.c++"

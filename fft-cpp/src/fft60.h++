@@ -2,10 +2,9 @@
 #define FFT60_HPP 1
 
 #include "complex.h++"
-#include "fft.h++"
 #include "mylang.h++"
 
-class FFT60 : public FFT {
+class FFT {
   unsigned int n;
   double* cosines;
   unsigned int* permute;
@@ -14,10 +13,10 @@ class FFT60 : public FFT {
   complex_p* shuffledArray;
 
 public:
-  FFT60(unsigned int n);
-  virtual ~FFT60();
+  FFT(unsigned int n);
+  ~FFT();
 
-  virtual void run(const Complex* f, Complex* out, int direction = 1) const;
+  void run(const Complex* f, Complex* out, int direction = 1) const;
 };
 
 #endif
