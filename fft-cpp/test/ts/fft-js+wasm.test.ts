@@ -105,8 +105,8 @@ function testTech(tech: string, versions: Record<string, () => Promise<FFTFactor
 
 for (let tech of techs) {
   switch (tech) {
-    case "JS"  : testTech(tech, versionsWASM); break;
-    case "WASM": testTech(tech, versionsJS  ); break;
+    case "JS"  : testTech(tech, versionsJS  ); break;
+    case "WASM": testTech(tech, versionsWASM); break;
     default: break; // Case "NATIVE" is handled elsewhere
   }
 }
