@@ -16,7 +16,7 @@ function App() {
     <VersionProvider versions={versions}>
       <h1>Comparing FFT Implementation Variants</h1>
       <p>
-        See <a href="https://github.com/hcschuetz/fft/">
+        See <a target="_blank" rel="noreferrer" href="https://github.com/hcschuetz/fft/">
           the GitHub repository
         </a> for more information.
       </p>
