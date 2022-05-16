@@ -74,6 +74,13 @@ async function compileWASM({version, outDir}) {
     src/${version}.c++
     src/lib.c
   `.trim().split(/\r\n|\r|\n/).map(line => line.trim())
+  // "-Wl,-shared" seems to enforce importing of __stack_pointer,
+  // which the stack-heavy FFT implementations need:
+  // (Ignore the warning about creating shared libs not yet being stable.)
+  // OTOH we cannot add this option unconditionally because
+  // that would crash the linking of fftKiss2.
+  // TODO Understand this better
+  .concat(/^fft0[12]$/.test(version) ? ["-Wl,-shared"] : [])
   .concat(process.env.CLANG_V ? ["-v"] : []),
   );
 
