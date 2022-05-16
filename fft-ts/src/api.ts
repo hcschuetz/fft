@@ -94,6 +94,10 @@ class FFT_API implements FFT {
   getOutput(index: number): Complex {
     return getComplex(this.output, index);
   }
+
+  dispose(): void {
+    // nothing to do; just rely on garbage collection
+  }
 }
 
 export const versions: Record<string, FFTFactory> = Object.fromEntries(

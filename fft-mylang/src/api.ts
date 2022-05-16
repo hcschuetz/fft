@@ -101,6 +101,10 @@ class FFTFromWASMModule implements FFT {
       im: this.output[i * 2 + 1],
     };  
   }
+
+  dispose(): void {
+    // nothing to do since we have no stateful memory allocation
+  }
 }
 
 export const versions: Record<string, () => Promise<FFTFactory>> =
