@@ -23,7 +23,7 @@ export interface FFT {
   getInput(index: number): Complex;
   run(direction?: number): void;
   getOutput(index: number): Complex;
-
+  dispose(): void;
 }
 
 /**

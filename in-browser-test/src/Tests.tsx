@@ -41,9 +41,10 @@ async function runFFTs(
   let results: Results = {};
   for (const [name, version] of Object.entries(versions)) {
     if (version.status !== "resolved" || !testVersions[name]) continue;
+    let fft_for_dispose: FFT | null = null;
     try {
       const factory = version.value;
-      const fft: FFT = factory(n);
+      const fft = fft_for_dispose = factory(n);
       data.map((v, i) => fft.setInput(i, v));
       fft.run(1);
       // // just to see how exceptions and diffs are handled:
@@ -56,6 +57,8 @@ async function runFFTs(
       results[name] = { out, ifft_fft, vs: {}};
     } catch (e) {
       results[name] = new Error(`Calculation failed: ${e}`);
+    } finally {
+      fft_for_dispose?.dispose();
     }
   }
   const versionNames = Object.keys(versions);

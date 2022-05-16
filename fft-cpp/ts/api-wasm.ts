@@ -81,10 +81,9 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
           const base64_version = imported.default;
           const bytes = decodeBase64(base64_version);
 
-          const memory = new WebAssembly.Memory({initial: 0, maximum: 100});
-          // ad-hoc value (should suffice for the data on the stack);
-          // actually only needed for certain implementations (fft01, fft02)
-          const stackSize = 2000000;
+          const memory = new WebAssembly.Memory({initial: 2, maximum: 256});
+          // some implementations need more stack...
+          const stackSize = /^fft0[12]$/.test(name) ? (1 << 23) : (1 << 16);
           const heap = makeHeap(memory, stackSize, {shouldSelfCheck: "quiet"});
 
           // Our C/C++ code needs only a small runtime environment.
