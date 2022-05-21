@@ -64,6 +64,7 @@ class FFTFromWASM implements FFT {
 
   // TODO call this from the test-driver code
   dispose() {
+    this.checkDisposed();
     this.api.delete_fft(this.fft);
     this.api.free(this.input);
     this.api.free(this.output);
