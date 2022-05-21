@@ -92,7 +92,6 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
             WebAssembly.Module.imports(module).flatMap(({module, name, kind}) =>
               module === "env" && kind === "function" ? [name] : []
             );
-          console.log(name, WebAssembly.Module.imports(module));
           const funcExports =
             WebAssembly.Module.exports(module).flatMap(({name, kind}) =>
               kind === "function" ? [name] : []
