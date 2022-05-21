@@ -94,18 +94,7 @@ async function compileWASM({version, outDir}) {
   // TODO Check if it is possible to use a webpack wasm-loader without
   // ejecting a create-react-app application.
   const wasmCode = await readFile(`${outFileBase}.wasm`);
-  await writeFile(`${outFileBase}-wasm.js`, `
-const ${version}_wasm_base64 = ${"`"}
-${wasmCode.toString("base64").match(/.{1,72}/g).join("\n")}
-${"`"};
-
-//export default ${version}_wasm_base64;
-module.exports = ${version}_wasm_base64;
-`);
-    await writeFile(`${outFileBase}-wasm.d.ts`, `
-declare const ${version}_wasm_base64: string;
-export default ${version}_wasm_base64;
-`);
+  await writeFile(`${outFileBase}-wasm.json`, `"${wasmCode.toString("base64")}"`);
 }
 
 async function compileJS({version, outDir}) {

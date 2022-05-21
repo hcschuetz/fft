@@ -601,14 +601,7 @@ async function main() {
   const binary = M.emitBinary();
   const wasmCode = Buffer.from(binary);
   mkdirSync("dst-wasm", {recursive: true});
-  writeFileSync("dst-wasm/" + version + "-wasm.js", `
-const ${version}_wasm_base64 = ${"`"}
-${wasmCode.toString("base64").match(/.{1,72}/g)!.join("\n")}
-${"`"};
-
-export default ${version}_wasm_base64;
-// module.exports = ${version}_wasm_base64;
-`);
+  writeFileSync("dst-wasm/" + version + "-wasm.json", `"${wasmCode.toString("base64")}"`);
 }
 
 main();

@@ -78,7 +78,7 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
     .map(name => {
       async function makeFactoryPromise(): Promise<FFTFactory> {
         try {
-          const imported = await import(`../dst-wasm/${name}-wasm.js`);
+          const imported = await import(`../dst-wasm/${name}-wasm.json`);
           const base64_version = imported.default;
           const bytes = decodeBase64(base64_version);
 
