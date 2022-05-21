@@ -85,7 +85,7 @@ async function compileWASM({version, outDir}) {
   );
 
   // For informational/debugging purposes:
-  spawnCommand(process.env.EMSDK + "/upstream/bin/wasm-dis", [
+  await spawnCommand(process.env.EMSDK + "/upstream/bin/wasm-dis", [
     `${outFileBase}.wasm`,
     "-o", `${outFileBase}.wast`,
   ]);
