@@ -87,9 +87,47 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
           const stackSize = /^fft0[12]$/.test(name) ? (1 << 23) : (1 << 16);
           const heap = makeHeap(memory, stackSize, {shouldSelfCheck: "quiet"});
 
-          // Our C/C++ code needs only a small runtime environment.
+          const module = await WebAssembly.compile(bytes);
+          const envFuncImports =
+            WebAssembly.Module.imports(module).flatMap(({module, name, kind}) =>
+              module === "env" && kind === "function" ? [name] : []
+            );
+          console.log(name, WebAssembly.Module.imports(module));
+          const funcExports =
+            WebAssembly.Module.exports(module).flatMap(({name, kind}) =>
+              kind === "function" ? [name] : []
+            );
+          const circularFuncs = funcExports.filter(name => envFuncImports.includes(name));
+          // Under certain circumstances modules are unlinked in the sense
+          // that some functions are both imported and exported.
+          // The linkFuncs close this self-dependency at runtime.
+          // (This is less efficient than proper linking.)
+          const linkFuncs = Object.fromEntries(circularFuncs.map(name => [
+            name,
+            (...args: any[]) => (instance as any).exports[name](...args)
+          ]));
+
+          // Hack: If the WASM module wants to import functions whose names
+          // sound related to problem-handling, we simply provide such
+          // functions and hope that they will not be called.  But if they are,
+          // they will simply throw an exception.
+          const errorFuncs = Object.fromEntries(
+            envFuncImports.filter(name => /error|exception|throw/i.test(name))
+            .map(name => [
+              name,
+              () => {
+                throw new Error(`Error handling function "${name}" called from WASM`);
+              }
+            ])
+          )
+ 
+          // Most of our modules need only a few imports, but here are all the
+          // imports that might be needed by any module.
+          // TODO create module-specific import objects?
           const imports: WebAssembly.Imports = {
             env: {
+              ...errorFuncs,
+              ...linkFuncs,
               ...heap,
               // TODO use heap management from a (C/C++) library?
               // but continue to use cos, sin from JS;
@@ -100,25 +138,18 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
               cos: Math.cos,
               sin: Math.sin,
               __stack_pointer: new WebAssembly.Global({value: 'i32', mutable: true}, stackSize),
-
-              // For fftKiss2, which was implemented in C++ irrespective of WASM:
-              // All these referenced functions seem to be supposed to perform
-              // some error handling.  We hope they are never called.
-              // But if they are, we simply throw an exception.
-              ...Object.fromEntries(`
-              __cxa_allocate_exception
-              __cxa_throw
-              _ZNKSt3__220__vector_base_commonILb1EE20__throw_length_errorEv
-              _ZNSt11logic_errorC2EPKc
-              _ZNSt12length_errorD1Ev
-              `.trim().split(/\r\n|\r|\n/).map(line => line.trim())
-              .map(name => [name, () => {
-                throw new Error(`Attempt to call library function ${name}`);
-              }]))
+              __memory_base: 0,
             },
+            "GOT.func": {
+              _ZNSt12length_errorD1Ev: new WebAssembly.Global({value: 'i32', mutable: true}, 0),
+            },
+            "GOT.mem": {
+              _ZTISt12length_error: new WebAssembly.Global({value: 'i32', mutable: true}, 0),
+              _ZTVSt12length_error: new WebAssembly.Global({value: 'i32', mutable: true}, 0),
+            }
           };
 
-          const { instance } = await WebAssembly.instantiate(bytes, imports);
+          const instance = await WebAssembly.instantiate(module, imports);
           (instance.exports as any).__wasm_call_ctors?.();
           const api: API = {...instance.exports as any, ...heap};
           return (size: number): FFT => new FFTFromWASM(memory, api, size);

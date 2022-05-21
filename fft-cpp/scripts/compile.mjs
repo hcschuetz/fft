@@ -52,7 +52,7 @@ async function compileNative({version, outDir}) {
   ]);
 }
 
-async function compileWASM({version, outDir}) {
+async function compileWASMClang({version, outDir}) {
   const outFileBase = `${outDir}/${version}`;
   await spawnCommand(process.env.EMSDK + "/upstream/bin/clang", `
     --sysroot=${process.env.EMSDK}/upstream/emscripten/cache/sysroot
@@ -83,6 +83,45 @@ async function compileWASM({version, outDir}) {
   .concat(/^fft0[12]$/.test(version) ? ["-Wl,-shared"] : [])
   .concat(process.env.CLANG_V ? ["-v"] : []),
   );
+}
+
+async function compileWASMEmscripten({version, outDir}) {
+  const outFileBase = `${outDir}/${version}`;
+  await spawnCommand(emcc, [
+    ...process.env.EMCC_V ? ["-v"] : [],
+    ...process.env.EMCC_G ? ["-g"] : [],
+    "-o", `${outFileBase}.wasm`,
+    "--memory-init-file", "0",
+    "-s", "MODULARIZE=1",
+    "-s", "ENVIRONMENT=web",
+    "-s", "WASM=1",
+    "-s", "SIDE_MODULE=2",
+    "--no-entry",
+    "-s", "FILESYSTEM=0",
+    "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
+    "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
+    "-O3",
+    `src/${version}.c++`,
+    "src/lib.c",
+  ]);
+}
+
+const compilerName = (process.env.COMPILER ?? "").charAt(0).toLowerCase();
+console.log(compilerName)
+
+async function compileWASM({version, outDir}) {
+  const compileWASMFunc =
+    compilerName === "c" ? compileWASMClang :
+    compilerName === "e" ? compileWASMEmscripten :
+    // For some reason fftKiss2 does not work with plain Clang.
+    // TODO Investigate why.
+    // For now we go back to Emscripten for this case.
+    version === "fftKiss2" ? compileWASMEmscripten :
+    compileWASMClang;
+
+  await compileWASMFunc({version, outDir});
+
+  const outFileBase = `${outDir}/${version}`;
 
   // For informational/debugging purposes:
   await spawnCommand(process.env.EMSDK + "/upstream/bin/wasm-dis", [
@@ -110,7 +149,7 @@ async function compileJS({version, outDir}) {
     // browser.  So we only create a single JS build, which is for the web
     // environment.
     "-s", "ENVIRONMENT=web",
-    "-s", `WASM=0`,
+    "-s", "WASM=0",
     "-s", "FILESYSTEM=0",
     "-s", "EXPORTED_FUNCTIONS=_malloc,_free,_prepare_fft,_run_fft,_delete_fft",
     "-s", "EXPORTED_RUNTIME_METHODS=setValue,getValue",
