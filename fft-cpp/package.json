@@ -6,7 +6,7 @@
     "build-ts": "tsc -p .",
     "build": "npm run build-c++ && npm run build-ts",
     "test": "jest",
-    "perf": "node scripts/performance.mjs",
+    "perf": "ts-node test/ts/perf.ts",
     "clean": "node scripts/clean.mjs"
   },
   "type": "commonjs",
