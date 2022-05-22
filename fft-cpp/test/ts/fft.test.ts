@@ -2,17 +2,13 @@ import { randomComplex } from "complex/dst/Complex";
 import { ComplexArray, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray";
 import { FFT, FFTFactory } from "fft-api/dst";
 
-import { versions as versionsJS   } from "../../dst/api-js";
-import { versions as versionsWASM } from "../../dst/api-wasm";
-
 import { getDist } from "./test-utils";
+import allVersions from "./allVersions";
 
 
 const { TECH, SIZES, VERSIONS } = process.env;
 const techs = (TECH ?? "JS,WASM,NATIVE").split(",").map(t => t.toUpperCase());
 const sizes = (SIZES ?? "1,2,4,8,16,32,64,2048").split(",").map(Number);
-
-test("dummy test to make jest happy", () => expect(0).toBeFalsy());
 
 function testTech(tech: string, versions: Record<string, () => Promise<FFTFactory>>): void {
   const versionNames: string[] = VERSIONS ? VERSIONS.split(",") : Object.keys(versions);
@@ -109,9 +105,5 @@ function testTech(tech: string, versions: Record<string, () => Promise<FFTFactor
 }
 
 for (let tech of techs) {
-  switch (tech) {
-    case "JS"  : testTech(tech, versionsJS  ); break;
-    case "WASM": testTech(tech, versionsWASM); break;
-    default: break; // Case "NATIVE" is handled elsewhere
-  }
+  testTech(tech, allVersions[tech]);
 }

@@ -1,8 +1,5 @@
-import { performance } from "perf_hooks";
 import { randomComplex } from "complex/dst/Complex";
-import { FFTFactory } from "fft-api/dst";
-import { versions as versionsJS   } from "../../ts/api-js";
-import { versions as versionsWASM } from "../../ts/api-wasm";
+import allVersions from "./allVersions";
 
 async function sleep(milliseconds: number) {
   await new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -17,11 +14,7 @@ const nBlocks = Number(N_BLOCKS ?? "2");
 const pause = Number(PAUSE ?? "0");
 
 async function main() {
-  const versions: Record<string, () => Promise<FFTFactory>> =
-    tech === "JS"   ? versionsJS   :
-    tech === "WASM" ? versionsWASM :
-    {};
-  const version = versions[versionName];
+  const version = allVersions[tech]?.[versionName];
   if (!version) {
     console.error("Version not supported: ", tech, versionName);
     return;
@@ -38,12 +31,8 @@ async function main() {
 
     for (let b = 0; b < nBlocks; b++) {
       await sleep(pause * 1000);
-      const start = performance.now();
-      for (let i = 0; i < blockSize; i++) {
-        fft.run();
-      }
-      const end = performance.now();
-      const time_per_run_in_s = (end - start) * 1e-3 / blockSize
+      const total_time = fft.runBlock(blockSize);
+      const time_per_run_in_s = total_time / blockSize
       console.log(`${
         (time_per_run_in_s * 1e6).toFixed(3).padStart(8)
       } µs; ${

@@ -6,7 +6,6 @@ const emcc = process.platform.startsWith("win") ? "emcc.bat" : "emcc";
 
 const binDir = `test/bin/`;
 const test_o = binDir + "test.o";
-const perf_o = binDir + "perf.o";
 
 async function compileNativeTest() {
   await mkdir(binDir, {recursive: true});
@@ -15,15 +14,6 @@ async function compileNativeTest() {
     "-o", test_o,
     "-I", "src",
     "test/native/test.c++",
-  ]);
-
-  // We are able to test the API from C and C++, but it suffices to run
-  // performance measurements from a single language.
-  await spawnCommand("g++", [
-    "-c", "-O4",
-    "-o", perf_o,
-    "-I", "src",
-    "test/native/perf.c++",
   ]);
 }
 
@@ -42,12 +32,6 @@ async function compileNative({version, outDir}) {
     "-O4",
     "-o", binDir + "test_" + version,
     test_o,
-    fft_code_o,
-  ]);
-  await spawnCommand("g++", [
-    "-O4",
-    "-o", binDir + "perf_" + version,
-    perf_o,
     fft_code_o,
   ]);
 }

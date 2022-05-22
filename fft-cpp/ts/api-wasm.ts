@@ -53,6 +53,14 @@ class FFTFromWASM implements FFT {
     this.checkDisposed();
     this.api.run_fft(this.fft, this.input, this.output, direction);
   }
+  runBlock(nCalls: number, direction: number = 1): number {
+    const start = performance.now();
+    for (let i = 0; i < nCalls; i++) {
+      this.api.run_fft(this.fft, this.input, this.output, direction);
+    }
+    const end = performance.now();
+    return (end - start) * 1e-3;
+  }
   getOutput(i: number): Complex {
     this.checkDisposed();
     const dv = new DataView(this.memory.buffer);

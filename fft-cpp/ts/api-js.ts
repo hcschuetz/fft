@@ -27,6 +27,14 @@ class FFTFromInstance implements FFT {
   run(direction: number = 1): void {
     this.instance._run_fft(this.p, this.input.p, this.output.p, direction);
   }
+  runBlock(nCalls: number, direction: number = 1): number {
+    const start = performance.now();
+    for (let i = 0; i < nCalls; i++) {
+      this.instance._run_fft(this.p, this.input.p, this.output.p, direction);
+    }
+    const end = performance.now();
+    return (end - start) * 1e-3;
+  }
   getOutput(i: number): Complex {
     return getComplex(this.output, i);
   }

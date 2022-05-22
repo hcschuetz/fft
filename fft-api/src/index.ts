@@ -22,6 +22,8 @@ export interface FFT {
   /** @deprecated use only for testing */
   getInput(index: number): Complex;
   run(direction?: number): void;
+  /** run the FFT `nCalls` times and return the total time in seconds */
+  runBlock(nCalls: number, direction?: number): number;
   getOutput(index: number): Complex;
   dispose(): void;
 }

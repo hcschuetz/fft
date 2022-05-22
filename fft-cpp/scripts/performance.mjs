@@ -4,30 +4,6 @@ import { spawnCommand } from "./spawnCommand.mjs";
 
 const ts_node = process.platform.startsWith("win") ? "ts-node.cmd" : "ts-node";
 
-async function runTechForVersion({version, tech}) {
-  console.log(`==== ${tech} ${version} ====`);
-  switch (tech) {
-    case "NATIVE":
-      await spawnCommand(`test/bin/perf_${version}`);
-      break;
-    case "JS":
-    case "WASM":
-      await spawnCommand(ts_node, ["test/ts/perf.ts", tech, version]);
-      break;
-    default:
-      // TODO such explanations should be written upon argument --help
-      console.error(`
-Environment variable TECH has value "${process.env.TECH}".
-Comma-separated components of TECH should be taken from these values:
-- NATIVE:  Run FFTs compiled to native code.
-- JS:      Run FFTs compiled to JS.
-- WASM:    Run FFTs compiled to WASM.
-`);
-      break;
-  }
-}
-
-
 const { VERSIONS, TECH } = process.env;
 
 const versions = VERSIONS ? VERSIONS.split(",") :
@@ -41,7 +17,8 @@ async function main() {
   try {
     for (const tech of techs) {
       for (const version of versions) {
-        await runTechForVersion({version, tech});
+        console.log(`==== ${tech} ${version} ====`);
+        await spawnCommand(ts_node, ["test/ts/perf.ts", tech, version]);
       }
     }
   } catch (e) {
