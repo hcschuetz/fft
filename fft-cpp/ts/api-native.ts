@@ -26,7 +26,7 @@ function fft_native(
     }),
   ].map(l => l + "\n").join("");
   const {stdout, stderr, error} = spawnSync(cmd, [], {input});
-  if (stderr.length > 0) {
+  if (stderr && stderr.length > 0) {
     console.error("native subprocess stderr:");
     console.error("-------------------------");
     console.error(stderr.toString("utf-8"));
