@@ -91,6 +91,14 @@ class FFT_API implements FFT {
   run(direction?: number): void {
     this.fftRun(this.input, this.output, direction);
   }
+  runBlock(nCalls: number, direction?: number): number {
+    const start = performance.now();
+    for (let i = 0; i < nCalls; i++) {
+      this.fftRun(this.input, this.output, direction);
+    }
+    const end = performance.now();
+    return (end - start) * 1e-3;
+  }
   getOutput(index: number): Complex {
     return getComplex(this.output, index);
   }

@@ -95,6 +95,15 @@ class FFTFromWASMModule implements FFT {
     const fft = direction > 0 ? this.fft : this.ifft;
     fft(this.size, this.shuffledStart, this.cosinesStart, this.outputStart);
   }
+  runBlock(nCalls: number, direction: number = 1): number {
+    const fft = direction > 0 ? this.fft : this.ifft;
+    const start = performance.now();
+    for (let i = 0; i < nCalls; i++) {
+      fft(this.size, this.shuffledStart, this.cosinesStart, this.outputStart);
+    }
+    const end = performance.now();
+    return (end - start) * 1e-3;
+  }
   getOutput(i: number): Complex {
     return {
       re: this.output[i * 2 + 0],
