@@ -1,3 +1,4 @@
+import path from "path";
 import { spawnSync } from "child_process";
 import { Complex } from "complex/dst/Complex";
 import { ComplexArray, complexArrayLength, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray";
@@ -90,7 +91,10 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
   Object.fromEntries(
     versionNames.map((name) => {
       async function makeFFTFactory(): Promise<FFTFactory> {
-        return (size: number) => new FFTNative(`test/bin/test_${name}`, size);
+        return (size: number) => new FFTNative(
+          path.join(__dirname, "..", "test", "bin", "test_" + name),
+          size,
+        );
       }
       return [name, makeFFTFactory];
     })
