@@ -1,0 +1,30 @@
+{
+  "name": "fft-versions",
+  "version": "1.0.0",
+  "description": "access to FFT implementations from multiple packages",
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dst', {recursive: true, force: true})\"",
+    "build": "tsc -p .",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "perf": "node dst/perf.js"
+  },
+  "author": "Heribert Schütz",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "complex": "file:../complex",
+    "fft-api": "file:../fft-api",
+    "fft-cpp": "file:../fft-cpp",
+    "fft-mylang": "file:../fft-mylang",
+    "fft-ts": "file:../fft-ts"
+  },
+  "devDependencies": {
+    "@jest/globals": "^28.1.0",
+    "@types/jest": "^27.5.1",
+    "@types/node": "^17.0.35",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.16.0",
+    "jest": "^28.1.0",
+    "typescript": "^4.6.4"
+  }
+}
