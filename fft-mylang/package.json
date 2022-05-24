@@ -6,13 +6,11 @@
   "author": "Heribert Schütz",
   "license": "MIT",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "clean": "node -e \"for (f of ['dst','src/generated']) require('fs').rmSync(f, {recursive: true, force: true})\"",
+    "clean": "node -e \"for (f of ['dst', 'dst-wasm','src/generated']) require('fs').rmSync(f, {recursive: true, force: true})\"",
     "build": "npm run build-parser && npm run build-ts && npm run build-compile",
     "build-parser": "node scripts/build-parser.js",
     "build-ts": "tsc -p .",
-    "build-compile": "node dst/compile.js",
-    "start": "node dst/run.js"
+    "build-compile": "node dst/compile.js"
   },
   "type": "module",
   "devDependencies": {
