@@ -1,6 +1,6 @@
 import { Complex } from "complex/dst/Complex";
 import { FFT, FFTFactory } from "fft-api/dst";
-import decodeBase64 from "./decodeBase64.js";
+import decodeBase64 from "base64/dst/decodeBase64.js";
 import { versionNames } from "./info.js";
 
 class FFTFromWASMModule implements FFT {

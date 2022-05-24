@@ -1,6 +1,6 @@
 import { Complex } from "complex/dst/Complex";
 import { FFT, FFTFactory } from "fft-api/dst";
-import decodeBase64 from "./decodeBase64";
+import decodeBase64 from "base64/dst/decodeBase64";
 import { versionNames } from "./info";
 import { makeHeap } from "./makeHeap";
 
