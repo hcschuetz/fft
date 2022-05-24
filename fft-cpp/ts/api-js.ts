@@ -1,7 +1,7 @@
-import { Complex } from "complex/dst/Complex";
+import { Complex } from "complex/dst/Complex.js";
 import { FFT, FFTFactory } from "fft-api/dst";
-import { ComplexArray, getComplex, Instance, setComplex } from "./fft-instance-utils";
-import { versionNames } from "./info";
+import { ComplexArray, getComplex, Instance, setComplex } from "./fft-instance-utils.js";
+import { versionNames } from "./info.js";
 
 
 class FFTFromInstance implements FFT {

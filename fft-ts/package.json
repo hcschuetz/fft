@@ -8,7 +8,7 @@
     "build": "tsc -p .",
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx"
   },
-  "type": "commonjs",
+  "type": "module",
   "devDependencies": {
     "@types/node": "^17.0.19",
     "@typescript-eslint/eslint-plugin": "^5.16.0",

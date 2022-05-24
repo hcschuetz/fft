@@ -1,8 +1,8 @@
-import { Complex } from "complex/dst/Complex";
+import { Complex } from "complex/dst/Complex.js";
 import { FFT, FFTFactory } from "fft-api/dst";
-import decodeBase64 from "base64/dst/decodeBase64";
-import { versionNames } from "./info";
-import { makeHeap } from "./makeHeap";
+import decodeBase64 from "base64/dst/decodeBase64.js";
+import { versionNames } from "./info.js";
+import { makeHeap } from "./makeHeap.js";
 
 type API = {
   prepare_fft(n: number): number,
@@ -86,7 +86,7 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
     .map(name => {
       async function makeFactoryPromise(): Promise<FFTFactory> {
         try {
-          const imported = await import(`../dst-wasm/${name}-wasm.json`);
+          const imported = await import(`../dst-wasm/${name}-wasm.js`);
           const base64_version = imported.default;
           const bytes = decodeBase64(base64_version);
 

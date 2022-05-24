@@ -1,6 +1,6 @@
-import { minus, plus, times, Complex } from "complex/dst/Complex";
-import { ComplexArray, getComplex, setComplex } from "complex/dst/ComplexArray";
-import { FFTPrep } from "./fft_types";
+import { minus, plus, times, Complex } from "complex/dst/Complex.js";
+import { ComplexArray, getComplex, setComplex } from "complex/dst/ComplexArray.js";
+import { FFTPrep } from "./fft_types.js";
 
 
 const TAU = 2 * Math.PI; // https://en.wikipedia.org/wiki/Turn_(angle)#Tau_proposals

@@ -1,5 +1,5 @@
 import { minus, plus } from "complex/dst/Complex.js";
-import { ComplexArray, getComplex, setComplex } from "complex/dst/ComplexArray";
+import { ComplexArray, getComplex, setComplex } from "complex/dst/ComplexArray.js";
 
 /**
  * Certain FFT optimizations assume a minimum problem size and do not work

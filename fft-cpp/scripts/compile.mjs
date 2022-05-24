@@ -117,15 +117,21 @@ async function compileWASM({version, outDir}) {
   // TODO Check if it is possible to use a webpack wasm-loader without
   // ejecting a create-react-app application.
   const wasmCode = await readFile(`${outFileBase}.wasm`);
-  await writeFile(`${outFileBase}-wasm.json`, `"${wasmCode.toString("base64")}"`);
+  await writeFile(
+    `${outFileBase}-wasm.js`,
+    "export default `\n"
+    + wasmCode.toString("base64").match(/.{1,72}/g).join("\n")
+    + "\n`;"
+  );
 }
 
 async function compileJS({version, outDir}) {
   const outFileBase = `${outDir}/${version}`;
+  const cjsFile = `${outFileBase}.cjs`;
   await spawnCommand(emcc, [
     ...process.env.EMCC_V ? ["-v"] : [],
     ...process.env.EMCC_G ? ["-g"] : [],
-    "-o", `${outFileBase}.js`,
+    "-o", cjsFile,
     "--memory-init-file", "0",
     "-s", "MODULARIZE=1",
     // Compiler output for the web environment actually does
@@ -141,6 +147,13 @@ async function compileJS({version, outDir}) {
     `src/${version}.c++`,
     "src/lib.c",
   ]);
+  // Wrap the EMCC-generated UMD (which can be used as CommonJS) in an ES module:
+  await writeFile(`${outFileBase}.js`, `
+const exports = {};
+const module = { exports };
+${await readFile(cjsFile, {encoding: "utf-8"})}
+export default module.exports;
+`);
   await writeFile(`${outFileBase}.d.ts`, `
 import { Instance } from "../dst/fft-instance-utils";
 declare function Module(): Promise<Instance>;

@@ -1,4 +1,4 @@
-import { Complex } from "complex/dst/Complex";
+import { Complex } from "complex/dst/Complex.js";
 
 const scalarType = "double";
 const scalarSize = 8;

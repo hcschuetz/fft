@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "author": "Heribert Schütz",
   "license": "MIT",
+  "type": "module",
   "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dst', {recursive: true, force: true})\"",
     "build": "tsc -p .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

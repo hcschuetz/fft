@@ -1,10 +1,9 @@
-import path from "path";
+import { fileURLToPath } from 'url';
 import { spawnSync } from "child_process";
-import { Complex } from "complex/dst/Complex";
-import { ComplexArray, complexArrayLength, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray";
+import { Complex } from "complex/dst/Complex.js";
+import { ComplexArray, complexArrayLength, getComplex, makeComplexArray, setComplex } from "complex/dst/ComplexArray.js";
 import { FFT, FFTFactory } from "fft-api/dst";
-import { versionNames } from "./info";
-
+import { versionNames } from "./info.js";
 
 const indices = (n: number) => new Array(n).fill(undefined).map((x, i) => i);
 
@@ -92,7 +91,7 @@ export const versions: Record<string, () => Promise<FFTFactory>> =
     versionNames.map((name) => {
       async function makeFFTFactory(): Promise<FFTFactory> {
         return (size: number) => new FFTNative(
-          path.join(__dirname, "..", "test", "bin", "test_" + name),
+          fileURLToPath(new URL("../test/bin/test_" + name, import.meta.url)),
           size,
         );
       }
