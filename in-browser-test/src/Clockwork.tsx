@@ -154,7 +154,7 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           <ClockworkGraphics fftFactory={fftFactory}/>
         </ConfigContext.Provider>
       </RoundsProvider>
-      <p>
+      {/* <p>
         Observations:
       </p>
       <ul>
@@ -167,7 +167,7 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
           On both Chrome and Firefox the canvas-based implementation is
           significantly faster/smoother than the SVG-based implementation.
           This is particularly noticeable with a high number of hands.
-          I see these possible reasons for this:
+          Some possible reasons for this:
           <ul>
             <li>
               The canvas implementations on Firefox and Chrome use the GPU,
@@ -179,11 +179,15 @@ const Clockwork1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
               Then the SVG implementation has to parse the strings back to numbers.
             </li>
             <li>
+              Also otherwise there is probably some cost
+              for embedding SVG elements in the DOM.
+            </li>
+            <li>
               There might also be an overhead for the scalability of SVG.
             </li>
           </ul>
         </li>
-      </ul>
+      </ul> */}
     </>
   );
 }
