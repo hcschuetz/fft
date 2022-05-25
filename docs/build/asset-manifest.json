@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/fft/build/static/css/main.298200cb.css",
-    "main.js": "/fft/build/static/js/main.442e7a8a.js",
+    "main.css": "/fft/build/static/css/main.8f458637.css",
+    "main.js": "/fft/build/static/js/main.0d2b524f.js",
     "static/js/599.a4c3f6e8.chunk.js": "/fft/build/static/js/599.a4c3f6e8.chunk.js",
     "static/js/13.334ed43e.chunk.js": "/fft/build/static/js/13.334ed43e.chunk.js",
     "static/js/406.7ffc7413.chunk.js": "/fft/build/static/js/406.7ffc7413.chunk.js",
@@ -29,8 +29,8 @@
     "static/js/787.8e6126b0.chunk.js": "/fft/build/static/js/787.8e6126b0.chunk.js",
     "static/js/48.5a6e28c3.chunk.js": "/fft/build/static/js/48.5a6e28c3.chunk.js",
     "index.html": "/fft/build/index.html",
-    "main.298200cb.css.map": "/fft/build/static/css/main.298200cb.css.map",
-    "main.442e7a8a.js.map": "/fft/build/static/js/main.442e7a8a.js.map",
+    "main.8f458637.css.map": "/fft/build/static/css/main.8f458637.css.map",
+    "main.0d2b524f.js.map": "/fft/build/static/js/main.0d2b524f.js.map",
     "599.a4c3f6e8.chunk.js.map": "/fft/build/static/js/599.a4c3f6e8.chunk.js.map",
     "13.334ed43e.chunk.js.map": "/fft/build/static/js/13.334ed43e.chunk.js.map",
     "406.7ffc7413.chunk.js.map": "/fft/build/static/js/406.7ffc7413.chunk.js.map",
@@ -59,7 +59,7 @@
     "48.5a6e28c3.chunk.js.map": "/fft/build/static/js/48.5a6e28c3.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.298200cb.css",
-    "static/js/main.442e7a8a.js"
+    "static/css/main.8f458637.css",
+    "static/js/main.0d2b524f.js"
   ]
 }
