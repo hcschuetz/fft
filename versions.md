@@ -5,7 +5,7 @@ the implementation language
 ("C" for C/C++, "T" for TypeScript, "M" for my home-grown language)
 and the runtime technology
 ("N" for native, "J" for JavaScript, "W" for Web Assembly).
-The native versions are available from node, but not in the browser.
+The native versions are available from node but not in the browser.
 
 [**fftKiss** and **fftKiss2**](https://sourceforge.net/projects/kissfft/files/kissfft/v1_3_0/)
 are C and C++ implementations by Mark Borgerding.
@@ -34,7 +34,7 @@ and invokes the sine and cosine functions when needed.
 
 I attempted to refine **fft01** in many small steps towards **fft99**
 to see which steps are most relevant for performance.
-But until now I only reached version **fft16**, which still
+But until now I only reached version **fft16**, which is still
 quite different from **fft99**.
 **fft98** is a step backward from **fft99**.
 
