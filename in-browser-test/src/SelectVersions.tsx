@@ -4,7 +4,7 @@ import { useVersions } from "./VersionContext";
 export const SelectVersions: FC<{
   selected: Record<string, boolean>,
   setSelected: (v: Record<string, boolean>) => void,
-}> = ({selected, setSelected}) => {
+}> = ({selected, setSelected, children}) => {
   const versions = useVersions();
   const versionNames = Object.keys(versions);
   const allRef: MutableRefObject<HTMLInputElement | null> = useRef(null);
@@ -32,6 +32,39 @@ export const SelectVersions: FC<{
   }
   return (
     <div>
+      <details>
+        <summary>{children}</summary>
+        <div className="details-body">
+          <ul>
+            <li>
+              The "all versions" checkbox selects/deselects all versions.
+            </li>
+            <li>
+              You can use the regular expression
+              (<a target="_blank" rel="noreferrer"
+                href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Cheatsheet"
+              >in JavaScript RegExp syntax</a>)
+              to select versions with matching names.
+              <br/>
+              Note that the expression matches substrings of the version names.
+              If you only want to match the entire names,
+              use a regular expression starting with "^" and ending with "$".
+              <br/>
+              To actually select the matched versions hit enter or click the "apply" button.
+              This button is only enabled when the regular expression is syntactically correct.
+            </li>
+            <li>
+              And of course you can select/deselect individual versions.
+            </li>
+            <li>
+              For information on the FFT implementations look
+              {} <a target="_blank" rel="noreferrer"
+                href="https://github.com/hcschuetz/fft/blob/main/versions.md"
+              >here</a>.
+            </li>
+          </ul>
+        </div>
+      </details>
       <label style={{flexBasis: "4em", whiteSpace: "nowrap"}}>
         <input type="checkbox"
           ref={allRef}

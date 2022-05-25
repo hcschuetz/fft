@@ -184,25 +184,27 @@ const ResultTable: FC<{results: Results}> = ({results}) => {
 };
 
 const Legend: FC<{}> = () => (
-  <>
-    <p>Legend:</p>
-    <ul>
-      <li><b>ifft∘fft</b><br/>
-        Apply the FFT version to random input data and then the IFFT (inverse FFT) to
-        the result.
-        Compare the (scaled) result of the latter to the input data.
-      </li>
-      <li><b>vs. ...</b><br/>
-        Compare the results of applying two FFT versions to (the same) random
-        input data.
-      </li>
-    </ul>
-    <p>
-      "Comparing" two complex arrays means that we compute some distance.
-      These distances should be small and explainable by roundoff
-      differences due to limited numeric precision.
-    </p>
-  </>
+  <details>
+    <summary>Legend:</summary>
+    <div className="details-body">
+      <ul>
+        <li><b>ifft∘fft</b><br/>
+          Apply the FFT version to random input data and then the IFFT (inverse FFT) to
+          the result.
+          Compare the (scaled) result of the latter to the input data.
+        </li>
+        <li><b>vs. ...</b><br/>
+          Compare the results of applying two FFT versions to (the same) random
+          input data.
+        </li>
+      </ul>
+      <p>
+        "Comparing" two complex arrays means that we compute some normalized distance.
+        These distances should be small and explainable by roundoff
+        differences due to limited numeric precision.
+      </p>
+    </div>
+  </details>
 );
 
 const Tests: FC = () => {
@@ -216,8 +218,9 @@ const Tests: FC = () => {
   const [results, setResults] = useState<Results>({});
   return (
     <>
-      <p>Select the versions to test:</p>
-      <SelectVersions selected={testVersions} setSelected={setTestVersions}/>
+      <SelectVersions selected={testVersions} setSelected={setTestVersions}>
+        Select the versions to test:
+      </SelectVersions>
       <p>Choose parameter:</p>
       <ParameterTable>
         <tr>

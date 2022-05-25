@@ -26,3 +26,17 @@ button[disabled] {
   background-color: #bbb;
   color: black;
 }
+
+details {
+  margin: 5px 0;
+}
+
+summary:hover {
+  text-decoration: underline;
+  color: #0060df;
+}
+
+.details-body {
+  padding: 1px 8px;
+  background-color: #eee;
+}
