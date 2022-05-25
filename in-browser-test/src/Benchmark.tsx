@@ -251,7 +251,7 @@ const Benchmark: FC = () => {
   const [nBlocksLabel, nBlocksSlider, nBlocks] = useSlider({
     id: "nBlocksSlider", label: "number of blocks:",
     min: 1, max: 20,
-    init: 2, transform: x => x,
+    init: 10, transform: x => x,
   });
   const [pauseLabel, pauseSlider, pause] = useSlider({
     id: "pauseSlider", label: "pause before each block:",
