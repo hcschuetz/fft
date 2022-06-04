@@ -1,23 +1,36 @@
 # An Overview Of The FFT Implementations
 
 The two letters in the name prefixes give
-the implementation language
-("C" for C/C++, "T" for TypeScript, "M" for my home-grown language)
-and the runtime technology
-("N" for native, "J" for JavaScript, "W" for Web Assembly).
+- the implementation language
+  ("C" for C/C++, "T" for TypeScript, "R" for Rust, "M" for my home-grown language)
+  and
+- the runtime technology
+  ("N" for native, "J" for JavaScript, "W" for Web Assembly).
+
 The native versions are available from node but not in the browser.
 
-[**fftKiss** and **fftKiss2**](https://sourceforge.net/projects/kissfft/files/kissfft/v1_3_0/)
-are C and C++ implementations by Mark Borgerding.
+
+**fftKiss** and **fftKiss2** are wrappers for the C and C++ implementations
+[kissfft](https://sourceforge.net/projects/kissfft/files/kissfft/v1_3_0/)
+by Mark Borgerding.
 These versions support several radices,
 but only radix 2 and 4 are used in our tests/benchmarks
-because the problem sizes are powers of 2.
+because our problem sizes are powers of 2.
 I have added these versions to my benchmarks because
 - they performed well in
   [Chris Cannam's benchmarks](https://thebreakfastpost.com/2015/10/18/ffts-in-javascript/)
   and
 - they support complex input as my own versions do
-  (whereas Chris Cannam is mainly interested in real input).
+  (whereas Chris Cannam is mainly interested in real-valued input).
+
+When I have time, I will also include a version based on
+[FFTW](https://www.fftw.org/).
+
+**fft_rust** uses the Rust crate
+"[rustfft](https://docs.rs/rustfft/latest/rustfft/)",
+which supports several algorithms.  We use the
+[Radix4](https://docs.rs/rustfft/latest/rustfft/algorithm/struct.Radix4.html)
+algorithm, which is optimized for powers of two.
 
 The numbered versions are FFT implementations by myself in TypeScript and C++.
 The versions with numbers in the fourties to sixties support radix 2 and 4.
@@ -30,7 +43,7 @@ All other versions use radix 2.
 It is recursive, allocates memory at runtime,
 and invokes the sine and cosine functions when needed.
 
-**fft99** is a relatively efficient base-2 implementation.
+**fft99** is a relatively efficient radix-2 implementation.
 
 I attempted to refine **fft01** in many small steps towards **fft99**
 to see which steps are most relevant for performance.
