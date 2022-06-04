@@ -78,7 +78,14 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [pitchResult, setPitchResult] = useState({period: 0, clarity: 0});
-  const [freeze, setFreeze] = useState(false);
+  // We start with frozen audio input so that the click to unfreeze it will
+  // persuade Chrome (and maybe other browsers) to activate the audio system.
+  // This is necessary when we come directly to the audio demo without previous
+  // user interaction.
+  // (Looks like the Chrome behavior is meant to avoid unexpected audio **output**.
+  // But it blocks input-only audio processing as well.  See
+  // https://developer.chrome.com/blog/web-audio-autoplay/.)
+  const [freeze, setFreeze] = useState(true);
   useEffect(() => {
     let animationFrameId: number | null = null;
     function setAnimationFrameId(value: number): void { animationFrameId = value; }
@@ -177,8 +184,14 @@ const AudioDemo1: FC<{fftFactory: FFTFactory}> = ({fftFactory}) => {
     <div style={{height: "100%", width: "850px", overflow: "auto"}}>
       <h1>Audio Demo</h1>
       <p>
-        Say something, sing, whistle or play an instrument
-        (and allow this page to use the microphone).
+        Unfreeze audio input by unchecking the following checkbox
+        (and allow this page to use the microphone if your browser asks).
+        Then say something, sing, whistle or play an instrument.
+      </p>
+      <p>
+        <label>
+          Audio input frozen: <input type="checkbox" checked={freeze} onChange={event => setFreeze(event.target.checked)}/>
+        </label>
       </p>
       <div>
         Pitch:
