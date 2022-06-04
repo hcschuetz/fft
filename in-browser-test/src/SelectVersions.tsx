@@ -18,7 +18,7 @@ export const SelectVersions: FC<{
         versionNames.some(name => !selected[name]);
     }
   }, [versionNames, selected]);
-  const [regexp, setRegexp] = useState("^(C.|.W) fft(47p|60|99|Kiss$)");
+  const [regexp, setRegexp] = useState("^.W fft(47|60|99|Kiss$|_rust)");
   function applyRegexp() {
     setSelected(Object.fromEntries(
       versionNames.map(name => [name, RegExp(regexp).test(name)])

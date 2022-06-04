@@ -1,0 +1,24 @@
+{
+  "name": "fft-rust",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "clean": "node -e \"for (f of ['dst', 'bin', 'rust/target','rust/pkg']) require('fs').rmSync(f, {recursive: true, force: true})\"",
+    "build-rust": "node scripts/compile.mjs",
+    "build-ts": "tsc -p .",
+    "build": "npm run build-rust && npm run build-ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Heribert Schütz",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^17.0.39",
+    "typescript": "^4.7.3"
+  },
+  "dependencies": {
+    "base64": "file:../base64",
+    "complex": "file:../complex",
+    "fft-api": "file:../fft-api"
+  }
+}

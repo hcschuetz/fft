@@ -16,6 +16,7 @@
     "fft-api": "file:../fft-api",
     "fft-cpp": "file:../fft-cpp",
     "fft-mylang": "file:../fft-mylang",
+    "fft-rust": "file:../fft-rust",
     "fft-ts": "file:../fft-ts"
   },
   "devDependencies": {
