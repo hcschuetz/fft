@@ -1,5 +1,6 @@
 mod fft_rust; use fft_rust::FFT;
-use num_complex::Complex;
+use num_complex::Complex64;
+use num_traits::identities::zero;
 use anyhow::{Context, Result};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -14,8 +15,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   let direction: i32   = iter.next().context("direction expected"      )?.parse()?;
   let size     : usize = iter.next().context("data size expected"      )?.parse()?;
 
-  let mut input = vec![Complex{re: 0., im: 0.}; size];
-  let mut output = input.clone();
+  let mut input: Vec<Complex64> = vec![zero(); size];
+  let mut output: Vec<Complex64> = vec![zero(); size];
 
   for i in 0..size {
     input[i].re = iter.next().with_context(|| format!("input[{}].re expected", i))?.parse()?;
@@ -29,18 +30,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
   #[allow(unused_mut)]
   let mut fft = FFT::prepare(size);
 
-  // eprintln!("run {} FFTs of size {}", n_calls, size);
   let start = Instant::now();
   for _ in 0..n_calls {
     fft.run(&mut input, &mut output, direction);
   }
   let end = Instant::now();
   let total_time = end.duration_since(start).as_secs_f64();
-  // eprintln!("total time: {} s; per call: {} µs; calls/s: {}",
-  //   total_time,
-  //   total_time / n_calls as f64 * 1e6,
-  //   n_calls as f64 / total_time,
-  // );
 
   println!("{:e}", total_time);
   for i in 0..size {

@@ -3,7 +3,7 @@ import { rename, mkdir, readFile, writeFile } from "node:fs/promises";
 import { spawnCommand } from "./spawnCommand.mjs";
 
 
-const implementations = ["fft01", "fft47", "fft_rust"];
+const implementations = ["fft01", "fft01unsafe", "fft47", "fft_rust"];
 
 const baseURL = new URL("..", import.meta.url);
 const getPath = relURL => fileURLToPath(new URL(relURL, baseURL));
@@ -40,6 +40,7 @@ async function buildImpl(name) {
     getPath("rust/pkg/fft_lib_bg.wasm"),
     getPath(`dst/${name}.wasm`),
   );
+
   // Just for debugging/curiosity:
   await spawnCommand(process.env.EMSDK + "/upstream/bin/wasm-dis", [
     getPath(`dst/${name}.wasm`),

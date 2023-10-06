@@ -4,6 +4,7 @@ mod utils;
 
 use wasm_bindgen::prelude::*;
 use num_complex::{Complex, Complex64};
+use num_traits::identities::zero;
 
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -11,8 +12,6 @@ use num_complex::{Complex, Complex64};
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-const ZERO_C: Complex<f64> = Complex::new(0., 0.);
 
 #[wasm_bindgen]
 pub struct FFTAPI {
@@ -27,8 +26,8 @@ impl FFTAPI {
     utils::set_panic_hook();
     FFTAPI{
       fft: FFT::prepare(size),
-      input: vec![ZERO_C; size],
-      output: vec![ZERO_C; size],
+      input: vec![zero(); size],
+      output: vec![zero(); size],
     }
   }
 

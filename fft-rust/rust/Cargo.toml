@@ -28,6 +28,7 @@ console_error_panic_hook = { version = "0.1.6", optional = true }
 wee_alloc = { version = "0.4.5", optional = true }
 
 num-complex = "0.4.1"
+num-traits = "0.2.15"
 rustfft = "6.0.1"
 anyhow = "1.0.57"
 # array-init = "2.0.0"
