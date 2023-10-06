@@ -4,13 +4,13 @@
 Test and benchmark the FFT implementations at
 https://hcschuetz.github.io/fft/build/.
 
-There are also demo applications using the FFT:
+That page also contains demo applications using the FFT:
 - https://hcschuetz.github.io/fft/build#ClockworkDemo
 - https://hcschuetz.github.io/fft/build#AudioDemo
 
 ## Overview
 
-This started as a study about efficiency of JavaScript/TypeScript (`./fft-ts/`)
+This project started as a study about efficiency of JavaScript/TypeScript (`./fft-ts/`)
 but meanwhile there are also implementations in
 - C/C++ (`./fft-cpp/`),
 - Rust (`./fft-rust/`), and

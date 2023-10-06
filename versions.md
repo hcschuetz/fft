@@ -23,8 +23,9 @@ I have added these versions to my benchmarks because
 - they support complex input as my own versions do
   (whereas Chris Cannam is mainly interested in real-valued input).
 
-When I have time, I will also include a version based on
+It would also be interesting to include a version based on
 [FFTW](https://www.fftw.org/).
+But it's not clear how much effort this would take.
 
 **fft_rust** uses the Rust crate
 "[rustfft](https://docs.rs/rustfft/latest/rustfft/)",
@@ -33,7 +34,7 @@ which supports several algorithms.  We use the
 algorithm, which is optimized for powers of two.
 
 The numbered versions are FFT implementations by myself in TypeScript and C++.
-The versions with numbers in the fourties to sixties support radix 2 and 4.
+The versions with numbers in the forties to sixties support radix 2 and 4.
 All other versions use radix 2.
 
 ## Notes On Some Versions
