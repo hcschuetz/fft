@@ -9,6 +9,7 @@ const baseURL = new URL("..", import.meta.url);
 const getPath = relURL => fileURLToPath(new URL(relURL, baseURL));
 
 const exeSuffix = process.platform.startsWith("win") ? ".exe" : "";
+const cmdSuffix = process.platform.startsWith("win") ? ".cmd" : "";
 
 async function selectImpl(name, path) {
   const contents = await readFile(path, "utf-8");
@@ -29,14 +30,14 @@ async function buildImpl(name) {
   console.log("--- WASM ---");
   const path = getPath("rust/src/lib.rs");
   await selectImpl(name, path);
-  await spawnCommand("wasm-pack", ["build", "--target", "no-modules", "--release"]);
+  await spawnCommand("wasm-pack" + cmdSuffix, ["build", "--target", "no-modules", "--release"]);
   await mkdir(getPath("dst"), {recursive: true});
   await rename(
     getPath("rust/pkg/fft_lib_bg.wasm"),
     getPath(`dst/${name}.wasm`),
   );
   // Just for debugging/curiosity:
-  await spawnCommand("wasm-dis", [
+  await spawnCommand(process.env.EMSDK + "/upstream/bin/wasm-dis", [
     getPath(`dst/${name}.wasm`),
     "-o", getPath(`dst/${name}.wast`),
   ]);
