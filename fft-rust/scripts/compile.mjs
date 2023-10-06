@@ -12,6 +12,10 @@ const exeSuffix = process.platform.startsWith("win") ? ".exe" : "";
 const cmdSuffix = process.platform.startsWith("win") ? ".cmd" : "";
 
 async function selectImpl(name, path) {
+  // TODO Instead of modifying the first line in the .rs file we could just
+  // use and create a one- or two-line "dispatcher module" using and
+  // re-exporting the selected implementation.
+  // The dispatcher module would be `.gitignore`d.
   const contents = await readFile(path, "utf-8");
   const firstLineLen = contents.match(/$/m).index;
   const firstLine = contents.substring(0, firstLineLen);
@@ -65,8 +69,12 @@ async function buildImpl(name) {
 
 async function main() {
   process.chdir(getPath("rust"));
-  // instead of looping here, we could probably use multiple [lib] and [[bin]]
-  // sections in ../rust/Cargo.toml, which would be more idiomatic.
+  // TODO write `implementations` to `getPath("dst/info.js")` and
+  // `getPath("dst/info.d.ts")` and remove `src/info.ts` so that we have
+  // a single source of truth (namely the current file).
+  // We might even do a directory scan here for `rust/src/fft*.rs`.
+
+  // TODO take process.env.VERSIONS into account
   for (const impl of implementations) {
     console.log(`==== Compile ${impl} ====`);
     await buildImpl(impl);
